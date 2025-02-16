@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
-import Button from '~/components/Buttons/Button';
+import Button from '~/components/Shared/Buttons/Button';
 import { Container } from '~/components/Shared/Container';
 
 export default function LandingPage() {

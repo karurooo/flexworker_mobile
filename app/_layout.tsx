@@ -9,12 +9,22 @@ import { useUserStore } from '~/store/users';
 import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
+import { supabase } from '~/services/supabase';
+import { setSession } from '~/services/supabase/session';
+import { useUserData } from '~/hooks/query/useUserData';
+import { userDataApi } from '~/services/api/users/userDataApi';
 
 export default function RootLayout() {
   const queryClient = new QueryClient();
-  const { isAuthenticated, initializeAuth } = useUserStore();
+  const { isAuthenticated, initializeAuth, role } = useUserStore();
   const [isReady, setIsReady] = useState(false); // Track app readiness
   const router = useRouter();
+
+  console.log('Auth State:', {
+    isReady,
+    isAuthenticated: useUserStore.getState().isAuthenticated,
+    role: useUserStore.getState().role,
+  });
 
   // Initialize authentication state when the app starts
   useEffect(() => {
@@ -34,12 +44,47 @@ export default function RootLayout() {
     }
   }, [isReady]);
 
-  // Navigate authenticated users to the home screen
+  // Updated auth listener
   useEffect(() => {
-    if (isReady && isAuthenticated) {
-      router.replace('/employer/(tabs)/home');
-    }
-  }, [isReady, isAuthenticated]);
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        console.log('User signed in:', session.user?.id);
+        await setSession('session', {
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+          user: { id: session.user.id },
+        });
+      } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
+        useUserStore.getState().clearAuth();
+      }
+    });
+
+    return () => authListener?.subscription.unsubscribe();
+  }, []);
+
+  // Update the navigation effect
+  useEffect(() => {
+    const checkAuthAndNavigate = async () => {
+      if (isReady && isAuthenticated) {
+        // Fetch complete user data including role
+        const userData = await userDataApi();
+
+        if (userData?.role) {
+          useUserStore.setState({ role: userData.role });
+          const route =
+            userData.role === 'employer' ? '/employer/(tabs)/home' : '/jobseeker/(tabs)/home';
+          router.replace(route);
+        } else {
+          console.log('No role found - redirecting to profile setup');
+          router.replace('/auth/signup');
+        }
+      }
+    };
+
+    checkAuthAndNavigate();
+  }, [isReady, isAuthenticated, router]);
+
   {
     !isReady ? (
       <View className="flex-1 items-center justify-center ">

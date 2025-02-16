@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { View, Text, TouchableOpacity } from 'react-native';
-import FormField from '~/components/Forms/FormFields';
+import FormField from '~/components/Shared/Forms/FormFields';
 import Alert from '~/components/Shared/Alerts';
 import { useVerificationMutation } from '~/mutations/auth/verification';
 import { VerificationFormData } from '~/schema/authSchema';
 import { resendOtp } from '~/services/api/authApi';
 import { useLocalSearchParams } from 'expo-router';
 import { Container } from '~/components/Shared/Container';
-import Header from '~/components/Header';
-import Button from '~/components/Buttons/Button';
+import Header from '~/components/Shared/Header';
+import Button from '~/components/Shared/Buttons/Button';
 
 const Verification = () => {
   const { control, handleSubmit } = useForm<VerificationFormData>();
@@ -114,11 +114,11 @@ const Verification = () => {
       <View className="mx-4 h-[85%] flex-1">
         {successResent && (
           <Alert
+            isVisible={successResent}
+            variant="success"
             title="OTP Resent"
             message="New OTP has been sent to your email"
-            variant="success"
             onClose={() => setSuccessResent(false)}
-            className="mb-4"
           />
         )}
 
@@ -160,15 +160,13 @@ const Verification = () => {
           </Text>
         </View>
       </View>
-      {showAlert && (
-        <Alert
-          title={error ? 'Error' : 'Success'}
-          message={error || successMessage || ''}
-          variant={error ? 'error' : 'success'}
-          onClose={handleCloseAlert}
-          className="mb-4"
-        />
-      )}
+      <Alert
+        isVisible={showAlert}
+        variant={error ? 'error' : 'success'}
+        title={error ? 'Error' : 'Success'}
+        message={error || successMessage || ''}
+        onClose={handleCloseAlert}
+      />
     </Container>
   );
 };

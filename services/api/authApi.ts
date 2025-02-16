@@ -1,6 +1,8 @@
+import { set } from 'react-hook-form';
 import { SigninFormData, VerificationFormData } from '~/schema/authSchema';
 import { supabase } from '~/services/supabase';
-import { getSession, setSession } from '~/services/supabase/session';
+import * as SecureStore from 'expo-secure-store';
+import { setSession } from '../supabase/session';
 
 interface SignupData {
   email: string;
@@ -17,6 +19,9 @@ interface VerifyOtpInput {
   lastName: string;
   role: string;
 }
+
+// Change storage key to avoid conflicts
+const SESSION_KEY = 'supabase_session';
 
 export const signup = async ({ email, password, firstName, lastName, role }: SignupData) => {
   try {
@@ -97,19 +102,36 @@ export const signin = async ({ email, password }: SigninFormData) => {
       password,
     });
 
-    if (error) {
-      throw new Error(error.message);
-    }
+    if (error) throw error;
 
-    await setSession('session', userData?.session.access_token);
+    // Store the entire session object
+    await SecureStore.setItemAsync(SESSION_KEY, JSON.stringify(userData.session));
 
-    const userSession = await getSession('session');
-    console.log('User session is:', userSession);
-
-    return { success: true, user: userData?.user };
+    return { success: true, user: userData.user, session: userData.session };
   } catch (error) {
     console.error('Signin error:', error);
     throw error;
+  }
+};
+
+// Add session recovery function
+export const recoverSession = async () => {
+  try {
+    const sessionString = await SecureStore.getItemAsync(SESSION_KEY);
+    if (!sessionString) return null;
+
+    const session = JSON.parse(sessionString);
+    const { data, error } = await supabase.auth.setSession(session);
+
+    if (error) {
+      await SecureStore.deleteItemAsync(SESSION_KEY);
+      throw error;
+    }
+
+    return data.session;
+  } catch (error) {
+    console.error('Session recovery failed:', error);
+    return null;
   }
 };
 

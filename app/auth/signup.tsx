@@ -1,17 +1,17 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { View, Text, Image } from 'react-native';
 import { Container } from '~/components/Shared/Container';
-import Header from '~/components/Header';
-import FormField from '~/components/Forms/FormFields';
-import Checkbox from '~/components/Checkbox';
-import Button from '~/components/Buttons/Button';
+import Header from '~/components/Shared/Header';
+import FormField from '~/components/Shared/Forms/FormFields';
+import Checkbox from '~/components/Shared/Checkbox';
+import Button from '~/components/Shared/Buttons/Button';
 import Alerts from '~/components/Shared/Alerts';
 import { useSignupMutation } from '~/mutations/auth/signup';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signupSchema, SignupFormData } from '~/schema/authSchema';
-import PressableText from '~/components/Buttons/PressableText';
-import RoleSelector from '~/components/Forms/RoleSelector';
+import PressableText from '~/components/Shared/Buttons/PressableText';
+import RoleSelector from '~/components/Shared/Forms/RoleSelector';
 import Alert from '~/components/Shared/Alerts';
 
 export default function Signup() {
@@ -96,11 +96,11 @@ export default function Signup() {
       <View className="mx-4 h-[85%] flex-1">
         {errorMessage && (
           <MemoizedAlert
+            isVisible={!!errorMessage}
+            variant="error"
             title="Signup Error"
             message={errorMessage}
-            variant="error"
             onClose={handleCloseAlert}
-            className="mb-4"
           />
         )}
         <View className="my-2">

@@ -21,7 +21,7 @@ export const Container = ({ children, scrollable = false }: ContainerProps) => {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 ">
+    <SafeAreaView className="mt-10 flex-1 ">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1">

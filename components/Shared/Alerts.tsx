@@ -1,12 +1,13 @@
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { View, Text, TouchableOpacity, Modal } from 'react-native';
-import Button from '~/components/Buttons/Button';
+import Button from '~/components/Shared/Buttons/Button';
 import React from 'react';
 
 interface AlertProps {
   variant?: 'success' | 'error' | 'confirmation' | 'info';
   title: string;
   message: string;
+  isVisible: boolean;
   onClose?: () => void;
   onConfirm?: () => void;
   className?: string;
@@ -51,9 +52,10 @@ const Alert = React.memo((props: AlertProps) => {
           <Text className="mb-6 mt-4 text-center text-gray-600">{message}</Text>
 
           {variant === 'confirmation' ? (
-            <View className="flex-row justify-center gap-4">
-              <Button title="Cancel" onPress={onClose} variant="secondary" />
+            <View className="  items-center justify-between  ">
               <Button title="Confirm" onPress={onConfirm} variant="primary" />
+
+              <Button title="Cancel" onPress={onClose} variant="secondary" />
             </View>
           ) : (
             <Button title="Close" onPress={onClose} variant="primary" />

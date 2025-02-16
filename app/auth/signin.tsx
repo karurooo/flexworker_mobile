@@ -1,22 +1,18 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, Pressable } from 'react-native';
-import Button from '~/components/Buttons/Button';
+import Button from '~/components/Shared/Buttons/Button';
 import { Container } from '~/components/Shared/Container';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signinSchema, SigninFormData } from '~/schema/authSchema';
-import FormField from '~/components/Forms/FormFields'; // Import the reusable FormField
+import FormField from '~/components/Shared/Forms/FormFields'; // Import the reusable FormField
 import { useSigninMutation } from '~/mutations/auth/signin';
-import PressableText from '~/components/Buttons/PressableText';
-import Header from '~/components/Header';
+import PressableText from '~/components/Shared/Buttons/PressableText';
+import Header from '~/components/Shared/Header';
+import Alert from '~/components/Shared/Alerts';
 
 export default function Signin() {
-  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const closeBottomSheet = useCallback(() => {
-    setIsBottomSheetVisible(false);
-    setErrorMessage('');
-  }, []);
 
   const {
     control,
@@ -38,8 +34,7 @@ export default function Signin() {
 
   useEffect(() => {
     if (mutationError) {
-      setIsBottomSheetVisible(true);
-      prevErrorMessageRef.current = mutationError.message;
+      setErrorMessage(mutationError.message);
     }
   }, [mutationError]);
 
@@ -61,6 +56,16 @@ export default function Signin() {
       <View className="m-4 h-5/6 flex-1 ">
         <Text className="text-3xl font-bold ">Welcome!</Text>
         <Text className="text-lg text-gray-800">Signin your account to continue</Text>
+
+        {errorMessage && (
+          <Alert
+            isVisible={!!errorMessage}
+            variant="error"
+            title="Signin Error"
+            message={errorMessage}
+            onClose={() => setErrorMessage('')}
+          />
+        )}
 
         <View className="my-4">
           <FormField control={control} name="email" label="Email" keyboardType="email-address" />
