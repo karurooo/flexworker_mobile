@@ -4,7 +4,12 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { EMPLOYER_DATA_QUERY_KEY } from '~/constants/auth/queryKeys';
 import { getEmployerData } from '~/services/api/employers/employerDataApi';
 import { getMatchedJobs } from '~/services/api/jobseekers/jobsDataApi';
-import { getPostByEmployer } from '~/services/api/employers/jobPostDataApi';
+import {
+  getAcceptedApplicants,
+  getPostByEmployer,
+  getTotalApplicants,
+  getTotalJobPosts,
+} from '~/services/api/employers/jobPostDataApi';
 import { JobPost } from '~/types/employers';
 
 const useJobsData = () => {
@@ -37,7 +42,7 @@ const useMatchJobs = (industry?: string) => {
   });
 };
 
-export const usePostedJobs = (employerId: string) => {
+const usePostedJobs = (employerId: string) => {
   return useQuery<JobPost[]>({
     queryKey: ['employerJobs', employerId],
     queryFn: () => getPostByEmployer(employerId),
@@ -46,4 +51,34 @@ export const usePostedJobs = (employerId: string) => {
   });
 };
 
-export { useJobsData, useMatchJobs };
+const useTotalApplicants = (employerId: string) => {
+  return useQuery({
+    queryKey: ['totalApplicants', employerId], // Add employerId to key for caching
+    queryFn: () => getTotalApplicants(employerId),
+    enabled: !!employerId, // Prevents query from running if employerId is undefined
+  });
+};
+
+const useTotalPostedJobs = (employerId: string) => {
+  return useQuery({
+    queryKey: ['totalPostedJobs', employerId],
+    queryFn: () => getTotalJobPosts(employerId),
+    enabled: !!employerId,
+  });
+};
+
+const useAcceptedApplicants = (employerId: string) => {
+  return useQuery({
+    queryKey: ['totalAcceptedApplicantsByEmployer', employerId],
+    queryFn: () => getAcceptedApplicants(employerId),
+    enabled: !!employerId, // Prevents query from running if employerId is undefined
+  });
+};
+export {
+  useJobsData,
+  useMatchJobs,
+  usePostedJobs,
+  useTotalApplicants,
+  useTotalPostedJobs,
+  useAcceptedApplicants,
+};

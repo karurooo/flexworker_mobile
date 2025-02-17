@@ -19,7 +19,6 @@ export default function Home() {
         <View className="h-full justify-center rounded-br-[75px] bg-navy "></View>
       </View>
       <View className="mx-4 h-[85%] flex-1">
-        <Announcements />
         <MatchedJobsList />
       </View>
     </Container>

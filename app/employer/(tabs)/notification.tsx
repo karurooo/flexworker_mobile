@@ -16,6 +16,7 @@ export default function Notification() {
   const userId = user?.id;
   const [refreshing, setRefreshing] = React.useState(false);
   const addNotification = useNotificationStore((state) => state.addNotification);
+  const [updateTrigger, setUpdateTrigger] = useState(0);
 
   const filteredNotifications = notifications.filter(
     (n) =>
@@ -34,13 +35,20 @@ export default function Notification() {
     if (!userId) return;
 
     const subscription = NotificationService.subscribeToNotifications(userId, (newNotification) => {
-      addNotification(newNotification);
+      if (newNotification.is_read) {
+        useNotificationStore.getState().markAsRead(newNotification.id);
+      } else if (!notifications.some((n) => n.id === newNotification.id)) {
+        addNotification(newNotification);
+      }
     });
 
+    // Proper cleanup with void return
     return () => {
-      subscription?.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
-  }, [userId, addNotification]);
+  }, [userId, notifications, addNotification]);
 
   const loadNotifications = async () => {
     setRefreshing(true);
@@ -75,7 +83,7 @@ export default function Notification() {
       </View>
       <View className=" mx-4 h-[85%] flex-1">
         <FlatList
-          key={`notifications-${notifications.length}`}
+          key={`notifications-${updateTrigger}`}
           extraData={notifications.length}
           data={filteredNotifications}
           renderItem={({ item }) => (
@@ -87,7 +95,15 @@ export default function Notification() {
               <Text className="text-center text-gray-500">No new notifications</Text>
             </View>
           }
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadNotifications} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => {
+                loadNotifications();
+                setUpdateTrigger((prev) => prev + 1);
+              }}
+            />
+          }
           getItemLayout={(data, index) => ({
             length: 80, // Match your notification item height
             offset: 80 * index,

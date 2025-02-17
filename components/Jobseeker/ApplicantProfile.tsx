@@ -16,9 +16,10 @@ import Alert from '../Shared/Alerts';
 interface ApplicantProfileProps {
   metadata?: NonNullable<Notification['metadata']>['applicantProfile'];
   jobPostingId: string;
+  jobTitle: NonNullable<Notification['metadata']>['job_title'];
 }
 
-const ApplicantProfile = memo(({ metadata, jobPostingId }: ApplicantProfileProps) => {
+const ApplicantProfile = memo(({ metadata, jobPostingId, jobTitle }: ApplicantProfileProps) => {
   if (!jobPostingId) {
     return (
       <Alert
@@ -101,6 +102,7 @@ const ApplicantProfile = memo(({ metadata, jobPostingId }: ApplicantProfileProps
         jobId: jobPostingId,
         decision: 'Approved',
         employer: employer,
+        jobTitle: jobTitle || '',
       });
 
       setAlertType('success');
@@ -136,6 +138,7 @@ const ApplicantProfile = memo(({ metadata, jobPostingId }: ApplicantProfileProps
         jobId: jobPostingId,
         decision: 'Rejected',
         employer: employer,
+        jobTitle: jobTitle || '',
       });
 
       setAlertType('success');

@@ -1,6 +1,6 @@
 export interface Notification {
   id: string;
-  type: 'new_application' | 'application_update' | 'job_alert';
+  type: 'new_application' | 'application_update' | 'job_alert' | 'accepted' | 'rejected';
   title: string;
   senderName?: string; // Add this line to include senderName
   message: string;
@@ -9,6 +9,7 @@ export interface Notification {
   job_posting_id?: string; // Fix typo in job_posting_id
   metadata?: {
     jobId: string;
+    decision?: 'accepted' | 'rejected';
     applied_job_id?: string;
     applicantId?: string;
     job_title?: string;
@@ -43,6 +44,12 @@ export interface Notification {
       present_address: Location;
       personal_information: PersonalInformation;
       educational_background: EducationalBackground;
+    };
+
+    job_postings?: {
+      job_title: string;
+      company_name: string;
+      location?: Location;
     };
   };
   user_id: string;

@@ -7,6 +7,9 @@ import { getEmployerData } from './employers/employerDataApi';
 import { JobSeeker, JobSeekerProfile } from '~/types/jobseeker';
 import { Employer } from '~/types/employers';
 import { User } from '~/types/users';
+import { useJobseekerData } from '~/hooks/query/useJobSeekerData';
+import { getJobseekerData } from './jobseekers/jobseekerDataApi';
+import { get } from 'lodash';
 
 const NOTIFICATION_LIMIT = 20; // Optimize initial load
 
@@ -28,18 +31,23 @@ export const NotificationService = {
     return notif;
   },
 
-  subscribeToNotifications: (userId: string, callback: (payload: any) => void) => {
+  subscribeToNotifications: (userId: string, callback: (notification: Notification) => void) => {
     return supabase
       .channel('notifications')
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'notifications',
           filter: `receiver_id=eq.${userId}`,
         },
-        (payload) => callback(payload.new)
+        (payload) => {
+          if (payload.eventType === 'UPDATE') {
+            useNotificationStore.getState().markAsRead(payload.new.id);
+          }
+          callback(payload.new as Notification);
+        }
       )
       .subscribe();
   },
@@ -82,9 +90,12 @@ export const NotificationService = {
           type: 'job_application',
           job_posting_id: jobPost.id,
           metadata: {
-            senderName: `${applicantProfile.personal_information?.first_name} ${applicantProfile.personal_information?.last_name}`,
+            job_postings: {
+              job_title: jobPost.job_title,
+              company_name: jobPost.company_name,
+              location: jobPost.location,
+            },
             applicantProfile: applicantProfile,
-            employer: jobPost,
             jobId: jobPost.id,
           },
           created_at: new Date().toISOString(),
@@ -110,8 +121,11 @@ export const NotificationService = {
     jobId: string;
     decision: 'Approved' | 'Rejected';
     employer: User;
+    jobTitle: string;
   }) => {
     try {
+      console.log('Starting hire decision:', params);
+
       // 1. First update application status
       const { error: updateError } = await supabase
         .from('applied_job')
@@ -120,27 +134,50 @@ export const NotificationService = {
         .eq('job_posting_id', params.jobId);
 
       if (updateError) throw updateError;
+      const user = await userDataApi();
+      const applicant = await getJobseekerData(params.applicantId);
+      const employer = await getEmployerData(user.id);
+      console.log('sender id', employer?.user_id);
+
+      console.log('Creating notification with:', {
+        receiver_id: params.applicantId,
+        type: 'application_update',
+        metadata: {
+          decision: params.decision.toLowerCase(),
+          jobId: params.jobId,
+          job_title: params.jobTitle,
+          employer: {
+            company_name: params.employer.company_name,
+          },
+          job_postings: {
+            job_title: params.jobTitle,
+            company_name: params.employer.company_name,
+          },
+        },
+      });
 
       // 2. Then attempt notification
       const { error: notifError } = await supabase
         .from('notifications')
         .insert([
           {
-            receiver_id: params.applicantId,
-            sender_id: params.employer.id,
+            sender_id: employer?.user_id,
+            receiver_id: applicant?.id,
             type: 'application_update',
-            title: params.decision === 'Approved' ? 'Application Accepted' : 'Application Rejected',
-            message:
-              params.decision === 'Approved'
-                ? `Congratulations! You've been hired for the position by ${params.employer?.company_name}`
-                : `Your application was not selected by ${params.employer?.company_name}`,
+            job_posting_id: params.jobId,
+            title: `Application ${params.decision}`,
+            message: `Your application for ${params.jobTitle} was ${params.decision}`,
             metadata: {
+              decision: params.decision.toLowerCase(),
               jobId: params.jobId,
-              decision: params.decision,
+              job_title: params.jobTitle,
               employer: {
-                id: params.employer.id,
-                name: params.employer.contact_person,
-                company: params.employer.company_name,
+                userId: params.employer.id,
+                company_name: params.employer.company_name,
+              },
+              job_postings: {
+                job_title: params.jobTitle,
+                company_name: params.employer.company_name,
               },
             },
           },

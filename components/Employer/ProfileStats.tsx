@@ -8,6 +8,11 @@ import CategoryComponent from './Categories';
 import { EmployerCategory } from '~/types/employers';
 import { useEmployerData, useEmployerStatus } from '~/hooks/query/useEmployerData';
 import SecondaryButtons from '../Shared/Buttons/SecondaryButton';
+import {
+  useAcceptedApplicants,
+  useTotalApplicants,
+  useTotalPostedJobs,
+} from '~/hooks/query/useJobData';
 
 const Stats: React.FC = ({}) => {
   const [showApplicationModal, setShowApplicationModal] = useState(false);
@@ -21,6 +26,15 @@ const Stats: React.FC = ({}) => {
     setSelectedCategory(category);
   };
 
+  const employerId = employerData?.id;
+
+  const { data: totalApplicants } = useTotalApplicants(employerId);
+  const { data: totalPosted } = useTotalPostedJobs(employerId);
+  const { data: totalAccepted } = useAcceptedApplicants(employerId);
+  console.log('Total Applicants: ', totalApplicants);
+  console.log('Total Posted: ', totalPosted);
+  console.log('Total Accepted: ', totalAccepted);
+
   return (
     <View className="flex-row items-center justify-between gap-4 px-2 py-2">
       {/* Posted */}
@@ -29,7 +43,7 @@ const Stats: React.FC = ({}) => {
           <MaterialIcons name="post-add" size={20} color="black" />
         </View>
         <Text className="mt-1 text-sm ">Posted</Text>
-        <Text className="text-md font-semibold text-gray-900">0</Text>
+        <Text className="text-md font-semibold text-gray-900">{totalPosted}</Text>
       </View>
 
       <TouchableOpacity className="flex-1 items-center" onPress={() => {}} activeOpacity={0.7}>
@@ -37,7 +51,7 @@ const Stats: React.FC = ({}) => {
           <AntDesign name="adduser" size={20} color="#166534" />
         </View>
         <Text className="mt-1 text-sm text-gray-600">Applied</Text>
-        <Text className="text-md font-semibold text-gray-900"> 0</Text>
+        <Text className="text-md font-semibold text-gray-900">{totalApplicants}</Text>
       </TouchableOpacity>
 
       <View className="flex-1 items-center">
@@ -45,10 +59,10 @@ const Stats: React.FC = ({}) => {
           <AntDesign name="checkcircle" size={20} color="#4BB543" />
         </View>
         <Text className="mt-1 text-sm text-gray-600">Accepted</Text>
-        <Text className="text-md font-semibold text-gray-900">0</Text>
+        <Text className="text-md font-semibold text-gray-900">{totalAccepted}</Text>
       </View>
       <View className="flex-1  rounded-lg border border-gray-200 px-2 py-1">
-        {!employerData && !status ? (
+        {!employerData && !status && status === 'Rejected' ? (
           <SecondaryButtons
             title="Apply"
             className=" rounded-lg border border-gray-600 px-2 py-1"

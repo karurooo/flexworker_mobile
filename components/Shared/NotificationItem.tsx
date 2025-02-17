@@ -9,19 +9,25 @@ import SecondaryModal from './Modal/SecondaryModal';
 import Buttons from './Buttons/Button';
 import SecondaryButtons from './Buttons/SecondaryButton';
 import ApplicantProfile from '../Jobseeker/ApplicantProfile';
+import NextSteps from './NextStept';
+import { useUserData } from '~/hooks/query/useUserData';
 
 interface NotificationItemProps {
   notification: Notification;
   onPress: () => void;
+  variant?: 'employer' | 'jobseeker';
 }
 
 const NotificationItem = memo(
-  ({ notification, onPress }: NotificationItemProps) => {
+  ({ notification, onPress, variant = 'employer' }: NotificationItemProps) => {
     const theme = useTheme();
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const [profileModalVisible, setProfileModalVisible] = useState(false);
+    const [responseModal, setResponseModal] = useState(false);
     const timeoutRef = React.useRef<NodeJS.Timeout>();
-
+    const { data: userData } = useUserData();
+    const role = userData?.role;
+    console.log(role);
     const { date, time } = useMemo(() => {
       const date = new Date(notification.created_at);
       return {
@@ -54,8 +60,7 @@ const NotificationItem = memo(
             raw_job_id: notification.job_posting_id,
             resolvedJobPostingId,
           },
-          null,
-          2
+          null
         )
       );
 
@@ -72,6 +77,48 @@ const NotificationItem = memo(
       setProfileModalVisible(false);
       setTimeout(() => onPress(), 150);
     }, [onPress]);
+
+    const handleViewResponse = useCallback(() => {
+      setDetailsModalVisible(false);
+      setTimeout(() => setProfileModalVisible(true), 150);
+    }, []);
+
+    const handleCloseResponse = useCallback(() => {
+      setProfileModalVisible(false);
+      setTimeout(() => onPress(), 150);
+    }, [onPress]);
+
+    const isJobSeekerView = variant === 'jobseeker';
+
+    const notificationContent = useMemo(() => {
+      switch (notification.type) {
+        case 'accepted':
+          return {
+            title: '🎉 You Got Hired!',
+            message: `Congratulations! You've been selected for ${notification.metadata?.job_postings?.job_title} at ${notification.metadata?.employer?.company_name}`,
+          };
+        case 'rejected':
+          return {
+            title: 'Application Update',
+            message: `Your application for ${notification.metadata?.job_postings?.job_title} wasn't selected`,
+          };
+        case 'job_alert':
+          return {
+            title: 'New Job Match!',
+            message: `We found a "${notification.metadata?.job_postings?.job_title}" position matching your profile`,
+          };
+        case 'application_update':
+          return {
+            title: `Application ${notification.metadata?.decision}`,
+            message: `Your application for ${notification.metadata?.job_postings?.job_title || notification.metadata?.job_title} at ${notification.metadata?.employer?.company_name} was ${notification.metadata?.decision}`,
+          };
+        default:
+          return {
+            title: notification.title,
+            message: notification.message,
+          };
+      }
+    }, [notification, isJobSeekerView]);
 
     return (
       <>
@@ -96,7 +143,7 @@ const NotificationItem = memo(
                     numberOfLines={2}
                     className="flex-1 pr-2 font-medium"
                     style={{ color: theme.colors.onSurface }}>
-                    {notification.title}
+                    {notificationContent.title}
                   </Text>
                   {!notification.is_read && <View className="bg-primary h-2 w-2 rounded-full" />}
                 </View>
@@ -104,11 +151,11 @@ const NotificationItem = memo(
                   variant="bodyMedium"
                   className="mt-2 leading-5"
                   style={{ color: theme.colors.onSurfaceVariant }}>
-                  {notification.message}
+                  {notificationContent.message}
                 </Text>
-                {notification.metadata?.job_title && (
+                {notification.metadata?.job_postings?.job_title && (
                   <Text variant="labelSmall" className="text-primary mt-2 font-medium">
-                    Position: {notification.metadata?.job_title}
+                    Position: {notification.metadata?.job_postings?.job_title}
                   </Text>
                 )}
                 <Text variant="labelSmall" className="text-outline mt-2">
@@ -123,7 +170,7 @@ const NotificationItem = memo(
           <View className="justify-center p-2">
             <View className="mb-4">
               <Text variant="titleMedium" className=" font-bold text-gray-900">
-                {notification.title}
+                {notificationContent.title}
               </Text>
 
               {notification.metadata?.senderName && (
@@ -136,18 +183,23 @@ const NotificationItem = memo(
                 <Text className="text-sm text-gray-500">{time}</Text>
               </View>
             </View>
-
             <Text variant="bodyMedium" className="mb-4  text-gray-700">
-              {notification.message}
+              {notificationContent.message}
             </Text>
-
-            {notification.metadata?.job_title && (
+            {notification.metadata?.job_postings?.job_title && (
               <View className="mb-4">
                 <Text className="text-primary text-sm font-medium">Position:</Text>
-                <Text className="text-sm text-gray-600">{notification.metadata?.job_title} </Text>
+                <Text className="text-sm text-gray-600">
+                  {notification.metadata?.job_postings?.job_title}
+                </Text>
               </View>
             )}
+            {/* {role === 'employer' && ( */}
             <SecondaryButtons title="See Profile" onPress={handleViewProfile} />
+            {/* // )} */}
+            {/* {role === 'jobSeeker' && (
+              <SecondaryButtons title="See Instructions" onPress={handleViewResponse} />
+            )} */}
           </View>
         </SecondaryModal>
 
@@ -155,8 +207,19 @@ const NotificationItem = memo(
           <ApplicantProfile
             metadata={notification.metadata?.applicantProfile}
             jobPostingId={resolvedJobPostingId}
+            jobTitle={
+              notification.metadata?.job_postings?.job_title ||
+              notification.metadata?.job_title ||
+              ''
+            }
           />
         </PrimaryModal>
+        {/* <SecondaryModal visible={responseModal} onClose={handleCloseProfile}>
+          <NextSteps
+            status={notification.metadata?.decision || 'pending'}
+            metadata={notification.metadata}
+          />
+        </SecondaryModal> */}
       </>
     );
   },

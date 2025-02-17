@@ -18,6 +18,9 @@ import JobPreferenceForm from '~/components/Jobseeker/JobPreference';
 import { useJobseekerData } from '~/hooks/query/useJobSeekerData';
 import React from 'react';
 import type { ListRenderItem } from 'react-native';
+import { Card } from 'react-native-paper';
+import { FontAwesome6 } from '@expo/vector-icons';
+import { useTheme } from 'react-native-paper';
 
 interface ProfileSection {
   key: 'personal' | 'education' | 'job-preference' | 'cover-letter';
@@ -39,7 +42,25 @@ const renderEducationLevel = (level: string, value: string) => {
   ) : null;
 };
 
+const formatLocation = (location: string | object) => {
+  try {
+    const loc = typeof location === 'string' ? JSON.parse(location) : location;
+    const parts = [
+      loc.region,
+      loc.province,
+      loc.city,
+      loc.barangay,
+      loc.street,
+      loc.zipCode ? ` ${loc.zipCode}` : null,
+    ].filter(Boolean);
+    return parts.join(', ').replace(/, (\d)/, ' $1');
+  } catch (e) {
+    return typeof location === 'string' ? location : 'Location not specified';
+  }
+};
+
 const Profile = React.memo(() => {
+  const theme = useTheme();
   const { data: user, isLoading, isError } = useUserData();
   const [personalInfo, setPersonalInfo] = useState(false);
   const [education, setEducation] = useState(false);
@@ -100,35 +121,90 @@ const Profile = React.memo(() => {
     switch (key) {
       case 'personal':
         return (
-          <View className="mt-2 space-y-2">
-            <Text className="text-base">{`Name: ${content.first_name} ${content.last_name}`}</Text>
-            <Text className="text-base">{`Contact: ${content.contact_number || 'Not provided'}`}</Text>
-            <Text className="text-base">{`Address: ${content.present_address?.street ? formatAddress(content.present_address) : 'Not provided'}`}</Text>
-          </View>
+          <Card.Content className="p-4">
+            <View className="flex-1">
+              <Text style={theme.fonts.titleMedium} className="font-bold text-gray-900">
+                {content.first_name} {content.last_name}
+              </Text>
+              <View className="mt-2 flex-row items-center justify-between">
+                <Text style={theme.fonts.labelSmall} className="text-primary font-medium">
+                  <FontAwesome6 name="phone" size={14} /> {content.contact_number || 'Not provided'}
+                </Text>
+                <Text style={theme.fonts.labelSmall} className="text-gray-500">
+                  <FontAwesome6 name="map-marker" size={14} />{' '}
+                  {content.present_address?.street ? 'Address Provided' : 'No Address'}
+                </Text>
+              </View>
+            </View>
+          </Card.Content>
         );
+
       case 'education':
         return (
-          <View className="mt-2 space-y-2">
-            {renderEducationLevel('Elementary', content.elementary)}
-            {renderEducationLevel('High School', content.highschool)}
-            {renderEducationLevel('Bachelor', content.bachelor)}
-            {renderEducationLevel('TechVoc', content.techvoc)}
-          </View>
+          <Card.Content className="p-4">
+            <View className="flex-1">
+              <Text style={theme.fonts.titleMedium} className="font-bold text-gray-900">
+                Education Background
+              </Text>
+              <View className="mt-2 space-y-2">
+                {renderEducationItem('Elementary', content.elementary)}
+                {renderEducationItem('High School', content.highschool)}
+                {renderEducationItem('Bachelor', content.bachelor)}
+                {renderEducationItem('TechVoc', content.techvoc)}
+              </View>
+            </View>
+          </Card.Content>
         );
+
       case 'job-preference':
         return (
-          <View className="mt-2 space-y-2">
-            <Text className="text-base">{`Industry: ${content.job_industry || 'Not specified'}`}</Text>
-            <Text className="text-base">{`Type: ${content.work_type || 'Not specified'}`}</Text>
-            <Text className="text-base">{`Location: ${content.location || 'Not specified'}`}</Text>
-          </View>
+          <Card.Content className="p-4">
+            <View className="flex-1">
+              <Text style={theme.fonts.titleMedium} className="font-bold text-gray-900">
+                Job Preferences
+              </Text>
+              <View className="mt-2 flex-row items-center justify-between">
+                <Text style={theme.fonts.labelSmall} className="text-primary font-medium">
+                  {content.job_industry || 'Any Industry'}
+                </Text>
+                <Text style={theme.fonts.labelSmall} className="text-gray-500">
+                  {content.work_type || 'Any Type'}
+                </Text>
+              </View>
+              <Text style={theme.fonts.bodySmall} className="mt-2 text-gray-500">
+                {formatLocation(content.location) || 'Any Location'}
+              </Text>
+            </View>
+          </Card.Content>
         );
+
       case 'cover-letter':
-        return <Text className="mt-2 text-base">{content || 'No cover letter provided'}</Text>;
+        return (
+          <Card.Content className="p-4">
+            <Text style={theme.fonts.titleMedium} className="font-bold text-gray-900">
+              Cover Letter
+            </Text>
+            <Text style={theme.fonts.bodySmall} className="mt-2 text-gray-800">
+              {content || 'No cover letter provided'}
+            </Text>
+          </Card.Content>
+        );
+
       default:
         return null;
     }
   };
+
+  const renderEducationItem = (level: string, value: string) => (
+    <View className="flex-row items-center justify-between">
+      <Text style={theme.fonts.labelMedium} className="text-gray-500">
+        {level}
+      </Text>
+      <Text style={theme.fonts.bodyMedium} className="text-gray-800">
+        {value || 'Not specified'}
+      </Text>
+    </View>
+  );
 
   return (
     <Container>

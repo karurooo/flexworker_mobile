@@ -75,10 +75,11 @@ const JobPost = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  const [isSuccess, setIsSuccess] = useState(false);
   const { data: userData } = useUserData();
   const { data: employer } = useEmployerData();
-  console.log('JobPost employer ID:', employer?.id);
-  console.log('JobPost userData ID:', userData?.id);
+
   const employerId = userData?.id ?? '';
 
   const handleJobIndustrySelect = useCallback(
@@ -197,6 +198,8 @@ const JobPost = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
   const onSubmit = useCallback(
     (data: JobPostingFormData) => {
       console.log('Submitting form data:', data);
+      console.log('Form errors:', formMethods.formState.errors);
+      console.log('Form values:', formMethods.getValues());
       postJob(
         {
           ...data,
@@ -244,7 +247,11 @@ const JobPost = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
                 className="my-2 rounded-lg border border-gray-400 px-4 py-3">
                 <Text className="text-gray-700">{addressText}</Text>
               </TouchableOpacity>
-              {item.error && <Text className="mt-1 text-sm text-red-500">{item.error}</Text>}
+              {formMethods.formState.errors.location && (
+                <Text className="mt-1 text-sm text-red-500">
+                  {formMethods.formState.errors.location.message}
+                </Text>
+              )}
             </View>
           );
         default:
@@ -265,24 +272,6 @@ const JobPost = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
           android: 60,
         })}
         style={{ flex: 1 }}>
-        {errorMessage && (
-          <Alert
-            isVisible={!!errorMessage}
-            variant="error"
-            title="Posting Error"
-            message={errorMessage}
-            onClose={() => setErrorMessage(null)}
-          />
-        )}
-        {successMessage && (
-          <Alert
-            isVisible={!!successMessage}
-            variant="success"
-            title="Success!"
-            message={successMessage}
-            onClose={() => setSuccessMessage(null)}
-          />
-        )}
         <FlatList
           ref={flatListRef}
           data={formFields}
@@ -302,13 +291,31 @@ const JobPost = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
             <View className="my-2">
               <Text className="text-2xl font-bold">Create Job Post</Text>
               <Text className="text-gray-600">Fill in the job details</Text>
+              {errorMessage && (
+                <Alert
+                  isVisible={!!errorMessage}
+                  variant="error"
+                  title="Posting Error"
+                  message={errorMessage}
+                  onClose={() => setErrorMessage(null)}
+                />
+              )}
+              {isSuccess && (
+                <Alert
+                  isVisible={isSuccess}
+                  variant="success"
+                  title="Success"
+                  message={'Job posted successfully!'}
+                  onClose={() => setIsSuccess(false)}
+                />
+              )}
             </View>
           }
           ListFooterComponent={
             <Button
               title={isPending ? 'Posting...' : 'Post Job'}
               onPress={formMethods.handleSubmit(onSubmit)}
-              disabled={isPending || !formMethods.formState.isValid}
+              disabled={isPending}
             />
           }
           contentContainerStyle={{

@@ -88,7 +88,10 @@ export const ApplicationService = {
           id,
           job_title,
           company_name,
-          location
+          location,
+          salary_range,
+          job_type,
+          created_at
         )
       `
       )

@@ -160,13 +160,6 @@ const Verification = () => {
           </Text>
         </View>
       </View>
-      <Alert
-        isVisible={showAlert}
-        variant={error ? 'error' : 'success'}
-        title={error ? 'Error' : 'Success'}
-        message={error || successMessage || ''}
-        onClose={handleCloseAlert}
-      />
     </Container>
   );
 };

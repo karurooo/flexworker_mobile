@@ -17,31 +17,29 @@ const Announcements = () => {
   const { data: announcements, isLoading } = useAnnouncementData();
 
   return (
-    <View className=" my-2 h-1/3 rounded-xl ">
-      <View className="mb-14 ">
-        <FlatList
-          data={announcements}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => {
-            return (
-              <Card
-                title={item.title}
-                content={item.content}
-                date={new Date(item.created_at)}
-                imageUrl={item.image_url}
-              />
-            );
-          }}
-          keyExtractor={(item) => item.id}
-          getItemLayout={getItemLayout}
-          initialNumToRender={8}
-          maxToRenderPerBatch={8}
-          windowSize={10}
-          removeClippedSubviews
-          updateCellsBatchingPeriod={50}
-          scrollEventThrottle={16}
-        />
-      </View>
+    <View className=" my-2  rounded-xl ">
+      <FlatList
+        data={announcements}
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => {
+          return (
+            <Card
+              title={item.title}
+              content={item.content}
+              date={new Date(item.created_at)}
+              imageUrl={item.image_url}
+            />
+          );
+        }}
+        keyExtractor={(item) => item.id}
+        getItemLayout={getItemLayout}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={10}
+        removeClippedSubviews
+        updateCellsBatchingPeriod={50}
+        scrollEventThrottle={16}
+      />
     </View>
   );
 };

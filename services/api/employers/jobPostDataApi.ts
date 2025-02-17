@@ -60,4 +60,94 @@ async function getPostByEmployer(employerId: string): Promise<JobPost[]> {
   return data as JobPost[];
 }
 
-export { postJob, getPostByEmployer, getAllJobPosts };
+//create an api function for total number of employers job posts
+
+//create an api function for total number of applicants who applied to the job post
+
+//create an api function for total number of applicants who are accepted by the employer
+
+async function getTotalJobPosts(employerId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('job_postings')
+    .select('*', { count: 'exact', head: true })
+    .eq('employer_id', employerId);
+
+  if (error) {
+    console.error('Error fetching total job posts:', error);
+    throw error;
+  }
+
+  return count || 0;
+}
+async function getTotalApplicants(employerId: string): Promise<number> {
+  // Step 1: Fetch job posting IDs for the employer
+  const { data: jobPostings, error: jobError } = await supabase
+    .from('job_postings')
+    .select('id')
+    .eq('employer_id', employerId);
+
+  if (jobError) {
+    console.error('Error fetching job postings for employer:', jobError);
+    throw jobError;
+  }
+
+  // Extract job IDs
+  const jobIds = jobPostings?.map((post) => post.id) ?? [];
+
+  if (jobIds.length === 0) {
+    return 0; // No job posts mean no applicants
+  }
+
+  // Step 2: Count applicants who applied to those job postings
+  const { count, error } = await supabase
+    .from('applied_job')
+    .select('*', { count: 'exact', head: true })
+    .in('job_posting_id', jobIds);
+
+  if (error) {
+    console.error('Error fetching total applicants by employer:', error);
+    throw error;
+  }
+
+  return count ?? 0;
+}
+
+async function getAcceptedApplicants(employerId: string): Promise<number> {
+  const { data: jobPosts, error: jobPostsError } = await supabase
+    .from('job_postings')
+    .select('id')
+    .eq('employer_id', employerId);
+
+  if (jobPostsError) {
+    console.error('Error fetching employer job postings:', jobPostsError);
+    throw jobPostsError;
+  }
+
+  const jobIds = jobPosts.map((job) => job.id);
+
+  if (jobIds.length === 0) {
+    return 0; // If employer has no job postings, return 0
+  }
+
+  const { count, error } = await supabase
+    .from('applied_job')
+    .select('*', { count: 'exact', head: true })
+    .in('job_posting_id', jobIds)
+    .eq('status', 'Approved');
+
+  if (error) {
+    console.error('Error fetching accepted applicants by employer:', error);
+    throw error;
+  }
+
+  return count ?? 0;
+}
+
+export {
+  postJob,
+  getPostByEmployer,
+  getAllJobPosts,
+  getTotalJobPosts,
+  getTotalApplicants,
+  getAcceptedApplicants,
+};
