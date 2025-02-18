@@ -41,13 +41,10 @@ const Corporation = memo(({ onCloseModal }: EmployerProps) => {
         street: '',
         zipCode: '',
       },
-      birCertSelfie: '',
-      businessPermitSelfie: '',
-      secCertSelfie: '',
     },
   });
 
-  const { mutate: submitCorporation, isPending } = useCorporationMutation();
+  const { mutate: submitCorporation, isPending, isError, isSuccess } = useCorporationMutation();
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -110,16 +107,6 @@ const Corporation = memo(({ onCloseModal }: EmployerProps) => {
                 title="Upload BIR Certificate"
               />
             </View>
-            <View className="flex-1">
-              <Text className="my-1 text-sm">BIR Selfie</Text>
-              {errors.birCertSelfie && (
-                <Text className="text-sm text-red-500">{errors.birCertSelfie.message}</Text>
-              )}
-              <CameraCapture
-                onImageCaptured={(url) => setValue('birCertSelfie', url)}
-                title="Take BIR Selfie"
-              />
-            </View>
           </View>
           <View className="mb-2 w-full flex-row items-center justify-center gap-2">
             <View className="flex-1">
@@ -132,39 +119,8 @@ const Corporation = memo(({ onCloseModal }: EmployerProps) => {
                 title="Upload Business Permit"
               />
             </View>
-            <View className="flex-1">
-              <Text className="my-1 text-sm">Permit Selfie</Text>
-              {errors.businessPermitSelfie && (
-                <Text className="text-sm text-red-500">{errors.businessPermitSelfie.message}</Text>
-              )}
-              <CameraCapture
-                onImageCaptured={(url) => setValue('businessPermitSelfie', url)}
-                title="Take Permit Selfie"
-              />
-            </View>
           </View>
-          <View className="mb-2 w-full flex-row items-center justify-center gap-2">
-            <View className="flex-1">
-              <Text className="my-1 text-sm">SEC Certificate</Text>
-              {errors.secCert && (
-                <Text className="text-sm text-red-500">{errors.secCert.message}</Text>
-              )}
-              <PickImage
-                onImageSelected={(url) => setValue('secCert', url)}
-                title="Upload SEC Certificate"
-              />
-            </View>
-            <View className="flex-1">
-              <Text className="my-1 text-sm">SEC Selfie</Text>
-              {errors.secCertSelfie && (
-                <Text className="text-sm text-red-500">{errors.secCertSelfie.message}</Text>
-              )}
-              <CameraCapture
-                onImageCaptured={(url) => setValue('secCertSelfie', url)}
-                title="Take SEC Selfie"
-              />
-            </View>
-          </View>
+          <View className="mb-2 w-full flex-row items-center justify-center gap-2"></View>
           <View className="mb-2 w-full flex-row items-center justify-center gap-2">
             <View className="flex-1">
               <Text className="my-1 text-sm">Articles of Incorporation</Text>
@@ -206,24 +162,27 @@ const Corporation = memo(({ onCloseModal }: EmployerProps) => {
             </PrimaryModal>
           )}
 
-          <Alert
-            variant="error"
-            title="Submission Error"
-            message={errorMessage || ''}
-            isVisible={!!errorMessage}
-            onClose={() => setErrorMessage(null)}
-          />
-
-          <Alert
-            variant="success"
-            title="Success!"
-            message={successMessage || ''}
-            isVisible={!!successMessage}
-            onClose={() => {
-              setSuccessMessage(null);
-              onCloseModal();
-            }}
-          />
+          {isError && (
+            <Alert
+              variant="error"
+              title="Submission Error"
+              message={errorMessage || ''}
+              isVisible={!!errorMessage}
+              onClose={() => setErrorMessage(null)}
+            />
+          )}
+          {isSuccess && (
+            <Alert
+              variant="success"
+              title="Success!"
+              message={successMessage || ''}
+              isVisible={!!successMessage}
+              onClose={() => {
+                setSuccessMessage(null);
+                onCloseModal();
+              }}
+            />
+          )}
         </View>
       )}
       keyExtractor={() => 'corporation-form'}

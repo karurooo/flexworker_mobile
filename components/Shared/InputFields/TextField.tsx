@@ -58,9 +58,7 @@ const TextField = React.forwardRef<TextInput, CustomTextFieldProps>(
             ref={ref}
             onFocus={handleFocus}
             onBlur={handleBlur}
-            className={`w-full rounded-lg px-4 py-3 
-              ${isFocused ? 'border-2 border-black' : 'border border-gray-400'} 
-             `}
+            className="w-full rounded-lg bg-white px-4 py-3 "
             placeholder={props.placeholder}
             placeholderTextColor="#C0C0C0"
             {...props}

@@ -62,10 +62,9 @@ const Stats: React.FC = ({}) => {
         <Text className="text-md font-semibold text-gray-900">{totalAccepted}</Text>
       </View>
       <View className="flex-1  rounded-lg border border-gray-200 px-2 py-1">
-        {!employerData && !status && status === 'Rejected' ? (
+        {!status || status === 'Rejected' ? (
           <SecondaryButtons
             title="Apply"
-            className=" rounded-lg border border-gray-600 px-2 py-1"
             onPress={() => setShowApplicationModal(true)}
             activeOpacity={0.7}>
             <Text className="text-sm ">Apply</Text>

@@ -108,12 +108,10 @@ const CameraCapture = memo(({ onImageCaptured, title }: CameraCaptureProps) => {
   return (
     <View className="flex">
       <TouchableOpacity
-        className={`h-10 w-full flex-row items-center justify-center gap-2 rounded-lg ${
-          isPending ? 'border border-sky' : 'border border-navy'
-        }`}
+        className="h-10 w-full flex-row items-center justify-center gap-2 rounded-lg bg-white"
         onPress={!isPending ? handleTakePhoto : undefined}
         disabled={isPending}>
-        <Text className="text-bold text- text-center ">
+        <Text className="text-bold text-center text-xs ">
           Capture {isPending ? 'Processing...' : <Entypo name="camera" size={16} color="black" />}
         </Text>
         {isPending && <ActivityIndicator size="small" color="#1F355C" />}

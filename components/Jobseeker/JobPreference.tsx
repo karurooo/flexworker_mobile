@@ -33,19 +33,6 @@ type FormFieldItem =
       options: Array<{ label: string; value: string }>;
     };
 
-const JOB_INDUSTRY_OPTIONS = Object.keys(jobIndustrySpecializationMap).map((value) => ({
-  label: value,
-  value,
-}));
-
-const JOB_SPECIALIZATION_OPTIONS = Object.entries(jobIndustrySpecializationMap).flatMap(
-  ([industry, specializations]) =>
-    specializations.map((spec) => ({
-      label: spec,
-      value: `${industry}-${spec}`,
-    }))
-);
-
 const WORK_TYPE_OPTIONS = Object.values(WorkTypeCategory)
   .filter((v) => v !== WorkTypeCategory.ALL)
   .map((value) => ({ label: value, value }));
@@ -66,8 +53,6 @@ const JobPreferenceForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
   const formMethods = useForm<JobPreferenceFormData>({
     resolver: zodResolver(JobPrefreferenceSchema),
     defaultValues: {
-      jobIndustry: '',
-      jobSpecialization: '',
       workType: '',
       salaryType: '',
       minSalary: '',
@@ -92,8 +77,8 @@ const JobPreferenceForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
     mutate(data, {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: ['matchedJobs'],
-          exact: false,
+          queryKey: ['matchedJobs', userId], // Add userId here
+          exact: true,
         });
         onCloseModal?.();
       },
@@ -102,18 +87,6 @@ const JobPreferenceForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
 
   const formFields = useMemo<FormFieldItem[]>(
     () => [
-      {
-        type: 'dropdown',
-        name: 'jobIndustry',
-        label: 'Job Industry',
-        options: JOB_INDUSTRY_OPTIONS,
-      },
-      {
-        type: 'dropdown',
-        name: 'jobSpecialization',
-        label: 'Job Specialization',
-        options: JOB_SPECIALIZATION_OPTIONS,
-      },
       {
         type: 'dropdown',
         name: 'workType',

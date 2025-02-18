@@ -55,15 +55,12 @@ const PickImage = memo(
     return (
       <View className="flex items-center">
         <TouchableOpacity
-          className={`h-10 w-full flex-row items-center justify-center gap-2 rounded-lg ${
-            isPending ? 'border border-sky' : 'border border-navy'
-          }`}
+          className="h-10 w-full flex-row items-center justify-center gap-2 rounded-lg bg-white"
           onPress={!isPending ? handlePickImage : undefined}
           disabled={isPending}>
           {typeof title === 'string' ? (
-            <Text className="text-bold text-md text-center">
-              {title}
-              Pick from Gallery {!isPending && <FontAwesome name="image" size={16} color="black" />}
+            <Text className="text-bold text-center text-xs">
+              Pick {!isPending && <FontAwesome name="image" size={15} color="black" />}
             </Text>
           ) : (
             title
@@ -72,7 +69,7 @@ const PickImage = memo(
         </TouchableOpacity>
 
         {showPreview && imageUri && (
-          <Image source={{ uri: imageUri }} style={{ width: 100, height: 100, marginTop: 10 }} />
+          <Image source={{ uri: imageUri }} className="h-24 w-24 rounded-lg py-4" />
         )}
       </View>
     );

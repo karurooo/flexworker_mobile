@@ -38,6 +38,8 @@ const FormField = React.memo((props: FormFieldProps) => {
           }}
           onBlur={field.onBlur}
           error={fieldState.error?.message}
+          placeholder={rest.placeholder}
+          placeholderTextColor={rest.placeholder ? '#C0C0C0' : undefined}
         />
       )}
     />

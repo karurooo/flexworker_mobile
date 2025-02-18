@@ -5,7 +5,7 @@ import { Container } from '~/components/Shared/Container';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signinSchema, SigninFormData } from '~/schema/authSchema';
-import FormField from '~/components/Shared/Forms/FormFields'; // Import the reusable FormField
+import FormField from '~/components/Shared/Forms/FormFields';
 import { useSigninMutation } from '~/mutations/auth/signin';
 import PressableText from '~/components/Shared/Buttons/PressableText';
 import Header from '~/components/Shared/Header';
@@ -34,7 +34,8 @@ export default function Signin() {
 
   useEffect(() => {
     if (mutationError) {
-      setErrorMessage(mutationError.message);
+      const message = mutationError.message.replace(/\.$/, '');
+      setErrorMessage(`${message}. Please try again or contact support if it persists.`);
     }
   }, [mutationError]);
 
@@ -61,15 +62,28 @@ export default function Signin() {
           <Alert
             isVisible={!!errorMessage}
             variant="error"
-            title="Signin Error"
+            title="Sign In Issue"
             message={errorMessage}
             onClose={() => setErrorMessage('')}
+            className="mb-4"
           />
         )}
 
         <View className="my-4">
-          <FormField control={control} name="email" label="Email" keyboardType="email-address" />
-          <FormField control={control} name="password" label="Password" isPassword />
+          <FormField
+            control={control}
+            name="email"
+            label="Email"
+            keyboardType="email-address"
+            placeholder="Enter your email"
+          />
+          <FormField
+            control={control}
+            name="password"
+            label="Password"
+            isPassword
+            placeholder="Enter your password"
+          />
           <View className="h-2/3 justify-between ">
             {/* Submit Button */}
             <View className="flex-1">

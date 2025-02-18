@@ -121,25 +121,23 @@ export interface EmployerProps {
   onCloseModal: () => void;
 }
 
-export interface JobPost {
+export type JobPost = {
   id: string;
-  employer_user_id: string;
-  employer_id: string;
   created_at: string;
-  company_name: string;
+  employer_id: string;
+  employer_user_id: string;
   job_title: string;
   job_industry: string;
   job_type: string;
-  salary_type: string;
+  salary_type: SalaryType;
   min_salary: number;
   max_salary: number;
   description?: string;
-  location: string | LocationObject;
-  requirements?: string;
-  how_to_apply?: string;
-  application_deadline?: string;
-  experience_level?: string;
-}
+  experience?: string;
+  location?: string;
+  contract?: string;
+  job_specialization?: string;
+};
 
 interface LocationObject {
   region?: string;
@@ -151,5 +149,20 @@ interface LocationObject {
 }
 
 export type JobPostWithRelations = JobPost & {
-  employers: { company_name: string };
+  employers: {
+    company_name: string;
+    user_id: string;
+  };
+};
+
+export type EmployerCategoryComponentProps = {
+  onCloseModal: () => void;
+  category: EmployerCategory;
+};
+
+export type EmployerDocumentField = {
+  type: 'document' | 'selfie';
+  name: string;
+  label: string;
+  required?: boolean;
 };

@@ -172,9 +172,6 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ onSubmit }) => {
     [regions, provinces, cities, barangays]
   );
 
-  // Memoize options to prevent unnecessary re-renders
-  const memoizedRegions = useMemo(() => regions?.map((r) => r.name) || [], [regions]);
-
   // Split renderItem into separate memoized component
   const MemoizedDropdown = React.memo(DropdownFormField<AddressFormData>);
 
@@ -214,16 +211,18 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ onSubmit }) => {
         renderItem={renderItem}
         keyExtractor={(item) => `${item.name}-${item.type}`}
         ListHeaderComponent={
-          <View className="px-4">
-            <Text className="text-bold text-background text-2xl font-bold">
-              Address Information
-            </Text>
-            <Text className="text-bold text-md text-background mb-4">
+          <View className="py-2">
+            <Text className="text-bold  text-2xl font-bold">Address Information</Text>
+            <Text className="text-bold text-md  mb-4">
               Please fill out the following information
             </Text>
           </View>
         }
-        ListFooterComponent={<Button title="Proceed" onPress={methods.handleSubmit(onSubmit)} />}
+        ListFooterComponent={
+          <View className="my-4">
+            <Button title="Proceed" onPress={methods.handleSubmit(onSubmit)} />
+          </View>
+        }
         getItemLayout={(data, index) => ({
           length: 80, // Estimated row height
           offset: 80 * index,
@@ -233,7 +232,7 @@ const AddressPicker: React.FC<AddressPickerProps> = ({ onSubmit }) => {
         maxToRenderPerBatch={6}
         windowSize={3}
         removeClippedSubviews
-        contentContainerStyle={{ paddingHorizontal: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 8 }}
       />
     </FormProvider>
   );

@@ -19,12 +19,18 @@ const categoryComponents: Record<EmployerCategory, React.ComponentType<EmployerP
   [EmployerCategory.GOVERNMENT]: Government,
   [EmployerCategory.CORPORATION]: Corporation,
   [EmployerCategory.SOLE_PROPRIETORSHIP]: SoleProprietorship,
-  [EmployerCategory.PRIVATE]: ({ onCloseModal }) => (
-    <View className="p-4">
-      <Text className="mb-4 text-lg font-bold">Private Requirements</Text>
-      <Button title="Close" onPress={onCloseModal} />
-    </View>
-  ),
+  [EmployerCategory.PRIVATE]: ({ onCloseModal }) => {
+    // Automatically close modal when mounted
+    React.useEffect(() => {
+      onCloseModal();
+    }, []);
+
+    return (
+      <View className="p-4">
+        <Text className="mb-4 text-lg font-bold">Private Requirements</Text>
+      </View>
+    );
+  },
 };
 
 const CategoryComponent: React.FC<CategoriesProps> = memo(({ category, onCloseModal }) => {

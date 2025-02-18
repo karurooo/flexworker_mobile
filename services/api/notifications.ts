@@ -1,17 +1,22 @@
 import { supabase } from '~/services/supabase';
 import { useNotificationStore } from '~/store/notifications';
-import { JobPost } from '~/types/employers';
+import { JobPost, JobPostWithRelations } from '~/types/employers';
 import { Notification } from '~/types/notifications';
 import { userDataApi } from './users/userDataApi';
 import { getEmployerData } from './employers/employerDataApi';
-import { JobSeeker, JobSeekerProfile } from '~/types/jobseeker';
-import { Employer } from '~/types/employers';
+import { JobSeeker, JobSeekerProfile, JobSeekerSkills } from '~/types/jobseeker';
 import { User } from '~/types/users';
 import { useJobseekerData } from '~/hooks/query/useJobSeekerData';
 import { getJobseekerData } from './jobseekers/jobseekerDataApi';
 import { get } from 'lodash';
 
 const NOTIFICATION_LIMIT = 20; // Optimize initial load
+
+export type NotificationJob = JobPostWithRelations & {
+  notification_id: string;
+  created_at: string;
+  read: boolean;
+};
 
 export const NotificationService = {
   initialize: async (userId: string) => {
@@ -55,7 +60,8 @@ export const NotificationService = {
   sendApplicationNotification: async (
     jobPost: JobPost,
     applicantId: string,
-    applicantProfile: JobSeekerProfile
+    applicantProfile: JobSeekerProfile,
+    applicantSkills: JobSeekerSkills
   ) => {
     if (!jobPost.id) {
       throw new Error('Job post ID is required for notifications');
@@ -92,11 +98,10 @@ export const NotificationService = {
           metadata: {
             job_postings: {
               job_title: jobPost.job_title,
-              company_name: jobPost.company_name,
               location: jobPost.location,
             },
             applicantProfile: applicantProfile,
-            jobId: jobPost.id,
+            applicantSkills: applicantSkills,
           },
           created_at: new Date().toISOString(),
         },

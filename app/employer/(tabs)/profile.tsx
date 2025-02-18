@@ -4,7 +4,6 @@ import { useUserData } from '~/hooks/query/useUserData';
 import { useUserStore } from '~/store/users';
 import ProfileHeader from '~/components/Employer/ProfileHeader';
 import Stats from '~/components/Employer/ProfileStats';
-import EmployerFields from '~/components/Employer/CommonFields';
 import { useState } from 'react';
 import PrimaryModal from '~/components/Shared/Modal/PrimaryModal';
 import ExtendedFab from '~/components/Shared/ExtendedFab';

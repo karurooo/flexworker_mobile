@@ -41,14 +41,13 @@ const SecondaryModal: React.FC<SecondaryModalProps> = memo(
         backdropTransitionOutTiming={0}
         className="m-0 justify-center">
         <View className="items-center justify-center ">
-          <View className="h-2/3 w-[90%] rounded-xl bg-white p-5 shadow-lg">
+          <View className="h-2/3 w-[90%] rounded-xl bg-gray-100 p-5 shadow-lg">
             <TouchableOpacity
               className="absolute right-3 top-3 z-10 p-1"
               onPress={onClose}
               activeOpacity={0.7}>
               <Ionicons name="close" size={24} color="black" />
             </TouchableOpacity>
-
             <View className="pt-2">
               {React.isValidElement(children)
                 ? React.cloneElement(children as React.ReactElement, { onClose })

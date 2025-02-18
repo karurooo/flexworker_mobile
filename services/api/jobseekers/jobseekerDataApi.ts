@@ -4,6 +4,7 @@ import {
   JobPreferenceFormData,
   PersonalInformationFormData,
   PresentAddressFormData,
+  JobSkillsFormData,
 } from '~/schema/jobeekerSchema';
 import { supabase } from '~/services/supabase';
 
@@ -136,8 +137,6 @@ async function postJobPreference(jobSeeker: JobPreferenceFormData, userId: strin
       .upsert({
         id: userId,
         job_preference: {
-          job_industry: jobSeeker.jobIndustry,
-          job_specialization: jobSeeker.jobSpecialization,
           work_type: jobSeeker.workType,
           salary_type: jobSeeker.salaryType,
           min_salary: jobSeeker.minSalary,
@@ -200,6 +199,35 @@ async function postPresentAddress(jobSeeker: PresentAddressFormData, userId: str
   }
 }
 
+async function postJobSkills(jobSeeker: JobSkillsFormData, userId: string) {
+  try {
+    console.log('Submitting job skills:', jobSeeker);
+
+    const { data, error } = await supabase
+      .from('job_seeker_skills')
+      .insert({
+        user_id: userId,
+        industry: jobSeeker.jobIndustry,
+        specialization: jobSeeker.jobSpecialization,
+      })
+      .single();
+
+    if (error) {
+      console.error('[JobSkills] Supabase error:', error);
+      throw new Error(`Job skills update failed: ${error.message}`);
+    }
+
+    console.log('Job skills inserted successfully:', data);
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] Job Skills Error:`, error);
+    throw new Error(
+      error instanceof Error
+        ? `Failed to insert job skills: ${error.message}`
+        : 'An unexpected error occurred'
+    );
+  }
+}
+
 async function getJobseekerData(userId: string) {
   try {
     const { data, error } = await supabase
@@ -216,6 +244,36 @@ async function getJobseekerData(userId: string) {
     throw error;
   }
 }
+
+async function getJobSeekerSkillsData(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('job_seeker_skills')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    console.log('Jobseeker Skills:', data);
+    return data;
+  } catch (error) {
+    console.error('Jobseeker Skill data fetch failed', error);
+    throw error;
+  }
+}
+
+async function deleteJobSeekerSkillsData(id: string) {
+  try {
+    const { data, error } = await supabase.from('job_seeker_skills').delete().eq('id', id);
+
+    if (error) throw error;
+    console.log('Jobseeker Skills:', data);
+    return data;
+  } catch (error) {
+    console.error('Jobseeker Skill data fetch failed', error);
+    throw error;
+  }
+}
+
 export {
   getJobseekerData,
   postJobseekerPersonalInfo,
@@ -223,4 +281,7 @@ export {
   postCoverLetter,
   postJobPreference,
   postPresentAddress,
+  postJobSkills,
+  getJobSeekerSkillsData,
+  deleteJobSeekerSkillsData,
 };

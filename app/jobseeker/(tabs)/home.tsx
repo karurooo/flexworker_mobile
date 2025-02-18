@@ -1,24 +1,29 @@
-import { View, Text, Button, Image, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { View } from 'react-native';
 import { Container } from '~/components/Shared/Container';
-import Header from '~/components/Shared/Header';
-import { useState, useEffect } from 'react';
-import SearchBar from '~/components/Shared/Search';
-import { useQuery } from '@tanstack/react-query';
-import { getMatchedJobs } from '~/services/api/jobseekers/jobsDataApi';
-import { useJobsStore } from '~/store/jobs';
-import { useUserStore } from '~/store/users';
-
 import Announcements from '~/components/Shared/Announcements';
 import MatchedJobsList from '~/components/Jobseeker/MatchedJobs';
-import { useJobseekerData } from '~/hooks/query/useJobSeekerData';
+import Header from '~/components/Shared/Header';
 
 export default function Home() {
+  const handleSearch = (query: string) => {
+    console.log('Searching for:', query);
+    // Implement your search logic here
+  };
+
   return (
     <Container>
-      <View className="h-[15%] bg-white">
-        <View className="h-full justify-center rounded-br-[75px] bg-navy "></View>
+      {/* Header Section */}
+      <View className="h-[15%]">
+        <View className="h-full justify-center rounded-br-[75px] bg-navy">
+          <Header />
+        </View>
       </View>
+
+      {/* Content Section */}
       <View className="mx-4 h-[85%] flex-1">
+        <Announcements />
+        <View className="my-3 border-b border-gray-300" />
         <MatchedJobsList />
       </View>
     </Container>
