@@ -1,5 +1,5 @@
 import { AntDesign } from '@expo/vector-icons';
-import { View, Text, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, FlatList, Alert } from 'react-native';
 import CameraCapture from '~/components/Shared/CameraCapture';
 import PickImage from '~/components/Shared/PickImage';
 import ProfilePicture from '~/components/Shared/ProfilePicture';
@@ -22,6 +22,8 @@ import type { ListRenderItem } from 'react-native';
 import { Card } from 'react-native-paper';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from 'react-native-paper';
+import { deleteJobSeekerSkillsData } from '~/services/api/jobseekers/jobseekerDataApi';
+import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
 
 interface ProfileSection {
   key: 'personal' | 'education' | 'job-preference' | 'cover-letter' | 'job-skills';
@@ -70,7 +72,24 @@ const Profile = React.memo(() => {
   const [jobSkills, setJobSkills] = useState(false);
 
   const { data: jobSeekerData } = useJobseekerData();
-  const { data: jobSeekerSkillsData } = useJobSeekerSkillsData();
+  const { data: jobSeekerSkillsData, refetch: refetchJobSeekerSkills } = useJobSeekerSkillsData();
+  const queryClient = useQueryClient(); // Initialize queryClient
+
+  const handleDeleteSkill = async (id: string) => {
+    try {
+      await deleteJobSeekerSkillsData(id);
+
+      // Refetch job skills data
+      await refetchJobSeekerSkills();
+
+      // Invalidate the matchedJobs query to trigger a refetch
+      await queryClient.invalidateQueries({ queryKey: ['matchedJobs', user?.id] });
+
+      console.log('Skill deleted successfully', id);
+    } catch (error) {
+      console.error('Failed to delete skill:', error);
+    }
+  };
 
   const profileSections = React.useMemo<ProfileSection[]>(
     () => [
@@ -113,7 +132,13 @@ const Profile = React.memo(() => {
       <View className="mb-6 rounded-lg bg-gray-50 p-4 shadow-sm">
         <View className="flex-row items-center justify-between">
           <Text className="text-xl font-semibold text-navy">{item.title}</Text>
-          <SecondaryButtons title="Edit" onPress={() => item.modalControl(true)} className="w-24" />
+          <TouchableOpacity
+            onPress={() => item.modalControl(true)}
+            className="flex-row items-center justify-center rounded-lg bg-primary px-4 py-2"
+          >
+            <AntDesign name="edit" size={18} color="black" />
+            <Text className="ml-2 text-sm font-medium text-black">Edit</Text>
+          </TouchableOpacity>
         </View>
         {renderSectionContent(item.key, item.content)}
       </View>
@@ -190,12 +215,25 @@ const Profile = React.memo(() => {
           <Card.Content className="p-4">
             {Array.isArray(content) && content.length > 0 ? (
               content.map((skill, index) => (
-                <View className='flex-row justify-between items-center' key={index}>
-                  <Text key={index} style={theme.fonts.bodySmall} className="mt-2 text-gray-800">
+                <View className="flex-row justify-between items-center" key={index}>
+                  <Text style={theme.fonts.bodySmall} className="mt-2 text-gray-800">
                     {skill.industry || 'No industry fetched'}
                   </Text>
-                  <TouchableOpacity>
-                    <Text className='text-red-300 font-medium text-sm mr-4'>Delete</Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Alert.alert(
+                        'Delete Skill',
+                        'Are you sure you want to delete this skill?',
+                        [
+                          { text: 'Cancel', style: 'cancel' },
+                          { text: 'Delete', onPress: () => handleDeleteSkill(skill.id) },
+                        ]
+                      );
+                    }}
+                    className="flex-row items-center justify-center rounded-lg bg-red-100 px-4 py-2"
+                  >
+                    <AntDesign name="delete" size={16} color="red" />
+                    <Text className="ml-2 text-sm font-medium text-red-600">Delete</Text>
                   </TouchableOpacity>
                 </View>
               ))
@@ -206,7 +244,6 @@ const Profile = React.memo(() => {
             )}
           </Card.Content>
         );
-
 
       default:
         return null;
@@ -233,7 +270,7 @@ const Profile = React.memo(() => {
         {value || 'Not specified'}
       </Text>
     </View>
-  )
+  );
 
   return (
     <Container>

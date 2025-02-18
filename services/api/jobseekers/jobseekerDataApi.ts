@@ -266,7 +266,7 @@ async function deleteJobSeekerSkillsData(id: string) {
     const { data, error } = await supabase
       .from('job_seeker_skills')
       .delete()
-      .eq('id', id)
+      .eq('id', id);
 
     if (error) throw error;
     console.log('Jobseeker Skills:', data);
