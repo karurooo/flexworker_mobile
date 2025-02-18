@@ -117,7 +117,7 @@ const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
             {
               type: "text",
               name: "customSpecialization",
-              label: "Custom Specialization",
+              label: "Please Specify",
               keyboardType: "default",
             },
           ]
