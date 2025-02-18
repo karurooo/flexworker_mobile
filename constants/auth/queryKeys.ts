@@ -5,3 +5,4 @@ export const USER_QUERY_KEY = ['user']; // Export as constant
 export const ANNOUNCEMENT_QUERY_KEY = ['announcement'] as const;
 export const JOB_POST_QUERY_KEY = ['job-post'] as const;
 export const JOB_SEEKER_QUERY_KEY = ['job-seeker'] as const;
+export const JOB_SKILLS_QUERY_KEY = ['job-skills'] as const;

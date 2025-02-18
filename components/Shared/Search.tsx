@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
-import { IconButton, useTheme } from 'react-native-paper';
+import { View, TextInput } from 'react-native';
+import { IconButton } from 'react-native-paper';
 import { debounce } from 'lodash';
 
-interface SearchBarProps<T> {
+interface SearchBarProps {
   onSearch: (query: string) => void;
   placeholder?: string;
   debounceTime?: number;
   initialQuery?: string;
-  containerStyle?: object;
+  containerStyle?: string; // Tailwind class for custom container styles
 }
 
-const SearchBar = <T,>({
+const SearchBar = ({
   onSearch,
   placeholder = 'Search...',
   debounceTime = 300,
   initialQuery = '',
-  containerStyle = {},
-}: SearchBarProps<T>) => {
-  const theme = useTheme();
+  containerStyle = '', // Default empty string for no additional styles
+}: SearchBarProps) => {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
 
   // Debounced search handler
@@ -37,9 +36,9 @@ const SearchBar = <T,>({
   };
 
   return (
-    <View className="mx-4 h-12 w-5/6 rounded-lg bg-gray-100 px-2 shadow-sm">
+    <View className={`flex-row items-center bg-white rounded-lg px-4 h-12 shadow-sm ${containerStyle}`}>
       <TextInput
-        className=" text-base text-gray-900"
+        className="flex-1 text-base text-gray-900"
         placeholderTextColor="#6b7280"
         value={searchQuery}
         onChangeText={setSearchQuery}
@@ -49,9 +48,17 @@ const SearchBar = <T,>({
         returnKeyType="search"
         onSubmitEditing={() => onSearch(searchQuery.trim())}
       />
-      <View className="absolute right-0 h-12 border-l border-gray-300">
+      {searchQuery ? (
+        <IconButton
+          icon="close"
+          size={20}
+          iconColor="#4b5563"
+          onPress={clearSearch}
+          accessibilityLabel="Clear search"
+        />
+      ) : (
         <IconButton icon="magnify" size={20} iconColor="#4b5563" />
-      </View>
+      )}
     </View>
   );
 };

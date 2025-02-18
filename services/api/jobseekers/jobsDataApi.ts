@@ -1,5 +1,5 @@
 import { supabase } from '~/services/supabase';
-import { JobPost, JobIndustries, SalaryType } from '~/types/employers';
+import { JobPost, SalaryType } from '~/types/employers';
 
 interface JobPostWithRelations {
   id: string;
@@ -16,67 +16,75 @@ interface JobPostWithRelations {
   location?: string;
   contract?: string;
   job_specialization?: string;
-  employers: { company_name: string };
+  company_name: string; // Derived from employers relation
 }
 
-interface MatchedJobsResult {
-  data: JobPost[] | null;
-  error: Error | null;
-}
-
-async function getMatchedJobs(userId: string): Promise<JobPost[]> {
+async function getMatchedJobs(userId: string): Promise<JobPostWithRelations[]> {
   try {
     // Validate input
     if (!userId || typeof userId !== 'string') {
       throw new Error('Invalid userId provided');
     }
 
-    // Add cache-busting parameter
-    const { data: jobSeeker } = await supabase
-      .from('job_seeker')
-      .select('job_preference')
-      .eq('id', userId)
-      .single();
+    // Fetch all industries associated with the user
+    const { data: jobSeekerIndustries, error: industriesError } = await supabase
+      .from('job_seeker_skills')
+      .select('industry')
+      .eq('user_id', userId);
 
-    if (!jobSeeker?.job_preference?.job_industry) {
-      throw new Error('Job industry preference not found');
+    if (industriesError) {
+      throw new Error(`Error fetching job seeker industries: ${industriesError.message}`);
     }
 
-    // Optimized query with required fields
-    const { data: jobPostings } = await supabase
+    // Extract industries into an array
+    const industries = jobSeekerIndustries?.map((item) => item.industry).filter(Boolean);
+    if (!industries || industries.length === 0) {
+      throw new Error('No job industries found for the user');
+    }
+
+    // Query jobs matching any of the user's industries
+    const { data: jobPostings, error: jobPostsError } = await supabase
       .from('job_postings')
-      .select('*')
-      .eq('job_industry', jobSeeker.job_preference.job_industry)
-      .range(0, 50)
-      .order('created_at', { ascending: false });
+      .select(`
+        *,
+        employers!inner(company_name)
+      `)
+      .in('job_industry', industries) // Match any of the user's industries
+      .range(0, 50) // Limit results
+      .order('created_at', { ascending: false }); // Order by most recent
 
-    if (!jobPostings) throw new Error('No job postings found');
+    if (jobPostsError) {
+      throw new Error(`Error fetching job postings: ${jobPostsError.message}`);
+    }
 
-    // Transform with proper typing and null checks
-    const transformedData = jobPostings
-      ?.map((post) => ({
-        id: post.id,
-        created_at: post.created_at,
-        employer_id: post.employer_id,
-        job_title: post.job_title,
-        job_industry: post.job_industry,
-        job_type: post.job_type,
-        salary_type: post.salary_type,
-        min_salary: post.min_salary ?? 0,
-        max_salary: post.max_salary ?? 0,
-        description: post.description,
-        experience: post.experience,
-        location: post.location,
-        contract: post.contract,
-        job_specialization: post.job_specialization,
-        company_name: post.employers?.company_name || 'Unknown Company',
-      }))
-      .filter((post) => post.id); // Filter out invalid entries
+    if (!jobPostings || jobPostings.length === 0) {
+      console.warn('No job postings found for the given industries');
+      return [];
+    }
 
-    return transformedData || []; // Direct array return
+    // Transform the data into the desired format
+    const transformedData = jobPostings.map((post) => ({
+      id: post.id,
+      created_at: post.created_at,
+      employer_id: post.employer_id,
+      job_title: post.job_title,
+      job_industry: post.job_industry,
+      job_type: post.job_type,
+      salary_type: post.salary_type,
+      min_salary: post.min_salary ?? 0,
+      max_salary: post.max_salary ?? 0,
+      description: post.description,
+      experience: post.experience,
+      location: post.location,
+      contract: post.contract,
+      job_specialization: post.job_specialization,
+      company_name: post.employers?.company_name || 'Unknown Company',
+    }));
+
+    return transformedData;
   } catch (error) {
     console.error('Error fetching matched jobs:', error);
-    return []; // Return empty array instead of null
+    return []; // Return empty array on error
   }
 }
 

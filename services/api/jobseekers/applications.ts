@@ -28,7 +28,9 @@ export const ApplicationService = {
     // More robust validation checking nested properties
     const isValidProfile = [
       profile.personal_information?.first_name,
-      profile.job_preference?.job_industry,
+      profile.job_preference?.work_type,
+      profile.job_preference?.salary_type,
+      profile.job_preference?.location,
       profile.educational_background?.bachelor,
       profile.present_address?.city,
     ].every((field) => !!field);

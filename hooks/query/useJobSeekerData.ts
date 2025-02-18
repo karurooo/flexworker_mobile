@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { getEmployerData } from '~/services/api/employers/employerDataApi';
 import { useUserStore } from '~/store/users';
-import { EMPLOYER_DATA_QUERY_KEY, JOB_SEEKER_QUERY_KEY } from '~/constants/auth/queryKeys';
+import { EMPLOYER_DATA_QUERY_KEY, JOB_SEEKER_QUERY_KEY, JOB_SKILLS_QUERY_KEY } from '~/constants/auth/queryKeys';
 import { useUserData } from './useUserData';
-import { getJobseekerData } from '~/services/api/jobseekers/jobseekerDataApi';
+import { getJobseekerData, getJobSeekerSkillsData } from '~/services/api/jobseekers/jobseekerDataApi';
 
 const useJobseekerData = () => {
   const { data: user } = useUserData();
@@ -24,6 +24,25 @@ const useJobseekerData = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes cache
   });
 };
+
+const useJobSeekerSkillsData = () => {
+  const { data: user } = useUserData();
+  const userId = user?.id;
+
+  return useQuery({
+    queryKey: [JOB_SKILLS_QUERY_KEY, userId],
+    queryFn: async () => {
+      if (!userId) throw new Error('User not authenticated');
+
+      const data = await getJobSeekerSkillsData(userId);
+      return data; // Ensure this returns an array of skills
+    },
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+
 // const useEmployerStatus = () => {
 //   const { isAuthenticated } = useUserStore();
 //   const { data: employer } = useJobseekerData();
@@ -39,4 +58,7 @@ const useJobseekerData = () => {
 //     staleTime: 1000 * 60 * 5,
 //   });
 // };
-export { useJobseekerData };
+export {
+  useJobseekerData,
+  useJobSeekerSkillsData
+};
