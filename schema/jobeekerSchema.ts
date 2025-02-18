@@ -62,6 +62,7 @@ export const CoverLetterSchema = z.object({
 export const JobSkillsSchema = z.object({
   jobIndustry: z.string(),
   jobSpecialization: z.string(),
+  customSpecialization: z.string().optional(),
 });
 
 // Base Job Seeker Present Address Schema

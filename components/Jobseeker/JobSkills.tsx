@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { useJobSeekerMutations } from "~/mutations/query/jobseeker/useJobseekerMutation";
 import { JobSkillsFormData, JobSkillsSchema } from "~/schema/jobeekerSchema";
 import { View, KeyboardAvoidingView, FlatList, Text, Platform } from "react-native";
@@ -16,6 +16,12 @@ import { useJobSeekerSkillsData } from "~/hooks/query/useJobSeekerData";
 
 type FormFieldItem =
   | {
+      type?: "text";
+      name: keyof JobSkillsFormData;
+      label: string;
+      keyboardType?: "default" | "numeric";
+    }
+  | {
       type: "dropdown";
       name: keyof JobSkillsFormData;
       label: string;
@@ -27,20 +33,13 @@ const JOB_INDUSTRY_OPTIONS = Object.keys(jobIndustrySpecializationMap).map((valu
   value,
 }));
 
-const JOB_SPECIALIZATION_OPTIONS = Object.entries(jobIndustrySpecializationMap).flatMap(
-  ([industry, specializations]) =>
-    specializations.map((spec) => ({
-      label: spec,
-      value: `${industry}-${spec}`,
-    }))
-);
-
 const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
   const formMethods = useForm<JobSkillsFormData>({
     resolver: zodResolver(JobSkillsSchema),
     defaultValues: {
       jobIndustry: "",
       jobSpecialization: "",
+      customSpecialization: "", // New field for custom input
     },
   });
 
@@ -49,6 +48,17 @@ const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
     control,
     formState: { errors },
   } = formMethods;
+
+  const selectedJobIndustry = useWatch({
+    control,
+    name: "jobIndustry",
+  });
+
+  const selectedJobSpecialization = useWatch({
+    control,
+    name: "jobSpecialization",
+  });
+
   const { jobSkillsMutation } = useJobSeekerMutations();
   const { mutate, isPending } = jobSkillsMutation;
   const queryClient = useQueryClient();
@@ -57,18 +67,35 @@ const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
   const { refetch: refetchJobSeekerSkills } = useJobSeekerSkillsData();
 
   const onSubmit = (data: JobSkillsFormData) => {
-    mutate(data, {
-      onSuccess: async () => {
-        await queryClient.invalidateQueries({ queryKey: [JOB_SKILLS_QUERY_KEY] });
-        await queryClient.invalidateQueries({ queryKey: ["matchedJobs", userId] });
-        await refetchJobSeekerSkills();
-        onCloseModal();
-      },
-      onError: (error) => {
-        console.error("Job Skills Error:", error);
-      },
-    });
+    const { jobIndustry, jobSpecialization, customSpecialization } = data;
+
+    // Use customSpecialization if "Other" is selected, otherwise use jobSpecialization
+    const specialization =
+      jobSpecialization === "Other" ? customSpecialization : jobSpecialization;
+
+    mutate(
+      { ...data, jobSpecialization: specialization },
+      {
+        onSuccess: async () => {
+          await queryClient.invalidateQueries({ queryKey: [JOB_SKILLS_QUERY_KEY] });
+          await queryClient.invalidateQueries({ queryKey: ["matchedJobs", userId] });
+          await refetchJobSeekerSkills();
+          onCloseModal();
+        },
+        onError: (error) => {
+          console.error("Job Skills Error:", error);
+        },
+      }
+    );
   };
+
+  const JOB_SPECIALIZATION_OPTIONS = useMemo(() => {
+    if (!selectedJobIndustry) return [];
+    return jobIndustrySpecializationMap[selectedJobIndustry].map((spec) => ({
+      label: spec,
+      value: spec,
+    }));
+  }, [selectedJobIndustry]);
 
   const formFields = useMemo<FormFieldItem[]>(
     () => [
@@ -84,8 +111,19 @@ const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
         label: "Job Specialization",
         options: JOB_SPECIALIZATION_OPTIONS,
       },
+      // Conditionally render a text input field if "Other" is selected
+      ...(selectedJobSpecialization === "Other"
+        ? [
+            {
+              type: "text",
+              name: "customSpecialization",
+              label: "Custom Specialization",
+              keyboardType: "default",
+            },
+          ]
+        : []),
     ],
-    []
+    [JOB_SPECIALIZATION_OPTIONS, selectedJobSpecialization]
   );
 
   const keyExtractor = useCallback(
@@ -106,15 +144,29 @@ const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: FormFieldItem }) => (
-      <DropdownFormField
-        control={control}
-        name={item.name}
-        label={item.label}
-        options={item.options}
-        error={errors[item.name]?.message}
-      />
-    ),
+    ({ item }: { item: FormFieldItem }) => {
+      if (item.type === "dropdown") {
+        return (
+          <DropdownFormField
+            control={control}
+            name={item.name}
+            label={item.label}
+            options={item.options}
+            error={errors[item.name]?.message}
+          />
+        );
+      }
+
+      return (
+        <FormField
+          control={control}
+          name={item.name}
+          label={item.label}
+          keyboardType={item.keyboardType}
+          error={errors[item.name]?.message}
+        />
+      );
+    },
     [control, errors]
   );
 

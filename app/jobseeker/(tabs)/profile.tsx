@@ -217,7 +217,7 @@ const Profile = React.memo(() => {
               content.map((skill, index) => (
                 <View className="flex-row justify-between items-center" key={index}>
                   <Text style={theme.fonts.bodySmall} className="mt-2 text-gray-800">
-                    {skill.industry || 'No industry fetched'}
+                    {skill.specialization || 'No skill fetched'}
                   </Text>
                   <TouchableOpacity
                     onPress={() => {
@@ -233,7 +233,6 @@ const Profile = React.memo(() => {
                     className="flex-row items-center justify-center rounded-lg bg-red-100 px-4 py-2"
                   >
                     <AntDesign name="delete" size={16} color="red" />
-                    <Text className="ml-2 text-sm font-medium text-red-600">Delete</Text>
                   </TouchableOpacity>
                 </View>
               ))

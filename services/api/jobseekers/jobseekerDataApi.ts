@@ -203,18 +203,39 @@ async function postJobSkills(jobSeeker: JobSkillsFormData, userId: string) {
   try {
     console.log('Submitting job skills:', jobSeeker);
 
-    const { data, error } = await supabase
+    // Check if a record with the same user_id, industry, and specialization already exists
+    const { data: existingRecord, error: fetchError } = await supabase
+      .from('job_seeker_skills')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('industry', jobSeeker.jobIndustry)
+      .eq('specialization', jobSeeker.jobSpecialization)
+      .single();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      // PGRST116 means "No rows found", which is expected if the record doesn't exist
+      console.error('[JobSkills] Supabase fetch error:', fetchError);
+      throw new Error(`Failed to check existing job skills: ${fetchError.message}`);
+    }
+
+    if (existingRecord) {
+      console.log('Job skill already exists:', existingRecord);
+      throw new Error('This job skill already exists for the user.');
+    }
+
+    // Insert the new job skill if it doesn't already exist
+    const { data, error: insertError } = await supabase
       .from('job_seeker_skills')
       .insert({
         user_id: userId,
         industry: jobSeeker.jobIndustry,
-        specialization: jobSeeker.jobSpecialization
+        specialization: jobSeeker.jobSpecialization,
       })
       .single();
 
-    if (error) {
-      console.error('[JobSkills] Supabase error:', error);
-      throw new Error(`Job skills update failed: ${error.message}`);
+    if (insertError) {
+      console.error('[JobSkills] Supabase insert error:', insertError);
+      throw new Error(`Job skills insertion failed: ${insertError.message}`);
     }
 
     console.log('Job skills inserted successfully:', data);
