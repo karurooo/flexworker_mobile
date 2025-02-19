@@ -9,8 +9,9 @@ import SecondaryModal from './Modal/SecondaryModal';
 import Buttons from './Buttons/Button';
 import SecondaryButtons from './Buttons/SecondaryButton';
 import ApplicantProfile from '../Jobseeker/ApplicantProfile';
-import NextSteps from './NextStept';
+import NextSteps from './NextStep';
 import { useUserData } from '~/hooks/query/useUserData';
+import Alert from './Alerts';
 
 interface NotificationItemProps {
   notification: Notification;
@@ -27,7 +28,8 @@ const NotificationItem = memo(
     const timeoutRef = React.useRef<NodeJS.Timeout>();
     const { data: userData } = useUserData();
     const role = userData?.role;
-    console.log(role);
+    const [viewReasons, setViewReasons] = useState(false);
+    const [viewInstructions, setInstructions] = useState(false);
     const { date, time } = useMemo(() => {
       const date = new Date(notification.created_at);
       return {
@@ -48,6 +50,19 @@ const NotificationItem = memo(
         'invalid-job-id'
       );
     }, [notification]);
+
+    const [error, setError] = useState<string | null>(null);
+    const [showAlert, setShowAlert] = useState(false);
+
+    const handleError = useCallback((message: string) => {
+      setError(message);
+      setShowAlert(true);
+    }, []);
+
+    const handleCloseAlert = useCallback(() => {
+      setShowAlert(false);
+      setError(null);
+    }, []);
 
     const handleItemPress = useCallback(() => {
       console.log(
@@ -83,12 +98,10 @@ const NotificationItem = memo(
       setTimeout(() => setProfileModalVisible(true), 150);
     }, []);
 
-    const handleCloseResponse = useCallback(() => {
-      setProfileModalVisible(false);
-      setTimeout(() => onPress(), 150);
-    }, [onPress]);
-
     const isJobSeekerView = variant === 'jobseeker';
+
+    const isEmployerApplication = notification.type === 'employer_application';
+    const applicationStatus = notification.metadata?.application_status || 'pending';
 
     const notificationContent = useMemo(() => {
       switch (notification.type) {
@@ -109,8 +122,18 @@ const NotificationItem = memo(
           };
         case 'application_update':
           return {
-            title: `Application ${notification.metadata?.decision}`,
-            message: `Your application for ${notification.metadata?.job_postings?.job_title || notification.metadata?.job_title} at ${notification.metadata?.employer?.company_name} was ${notification.metadata?.decision}`,
+            title: `Application ${notification.metadata?.decision?.toUpperCase()}`,
+            message: `Your application for ${notification.metadata?.job_title} at ${notification.metadata?.employer?.company_name} was ${notification.metadata?.decision}`,
+          };
+        case 'job_application':
+          return {
+            title: notification.title,
+            message: notification.message,
+          };
+        case 'employer_application':
+          return {
+            title: 'Employer Application Status',
+            message: notification.message,
           };
         default:
           return {
@@ -120,8 +143,21 @@ const NotificationItem = memo(
       }
     }, [notification, isJobSeekerView]);
 
+    const isAdminResponse = notification.type === 'employer_application';
+    const isApproved = notification.metadata?.admin_decision === 'approved';
+
     return (
       <>
+        {showAlert && (
+          <Alert
+            isVisible={showAlert}
+            variant="error"
+            title="Notification Error"
+            message={error || 'Failed to load notification details'}
+            onClose={handleCloseAlert}
+          />
+        )}
+
         <Animated.View
           entering={FadeIn.duration(300)}
           exiting={FadeOut.duration(200)}
@@ -131,7 +167,15 @@ const NotificationItem = memo(
             onPress={handleItemPress}
             accessibilityLabel={`Notification: ${notification.title}`}>
             <Card
-              className="bg-surface mx-2 my-1 overflow-hidden rounded-xl shadow-md"
+              className={`mx-2 my-1 overflow-hidden rounded-xl shadow-md ${
+                isEmployerApplication
+                  ? applicationStatus === 'approved'
+                    ? 'bg-green-50'
+                    : applicationStatus === 'rejected'
+                      ? 'bg-red-50'
+                      : 'bg-blue-50'
+                  : 'bg-surface'
+              }`}
               style={{
                 borderLeftWidth: notification.is_read ? 0 : 4,
                 borderLeftColor: theme.colors.primary,
@@ -148,16 +192,32 @@ const NotificationItem = memo(
                   {!notification.is_read && <View className="bg-primary h-2 w-2 rounded-full" />}
                 </View>
                 <Text
-                  variant="bodyMedium"
+                  variant="bodySmall"
                   className="mt-2 leading-5"
                   style={{ color: theme.colors.onSurfaceVariant }}>
                   {notificationContent.message}
                 </Text>
+
+                {isEmployerApplication && (
+                  <>
+                    <Text variant="labelSmall" className="text-outline mt-2">
+                      Company: {notification.metadata?.company_name}
+                    </Text>
+                    <Text variant="labelSmall" className="text-outline mt-1">
+                      Applied on:{' '}
+                      {new Date(
+                        notification.metadata?.submitted_at ?? Date.now()
+                      ).toLocaleDateString()}
+                    </Text>
+                  </>
+                )}
+
                 {notification.metadata?.job_postings?.job_title && (
                   <Text variant="labelSmall" className="text-primary mt-2 font-medium">
                     Position: {notification.metadata?.job_postings?.job_title}
                   </Text>
                 )}
+
                 <Text variant="labelSmall" className="text-outline mt-2">
                   {date} • {time}
                 </Text>
@@ -169,23 +229,40 @@ const NotificationItem = memo(
         <SecondaryModal visible={detailsModalVisible} onClose={() => setDetailsModalVisible(false)}>
           <View className="justify-center p-2">
             <View className="mb-4">
-              <Text variant="titleMedium" className=" font-bold text-gray-900">
+              <Text variant="titleMedium" className="font-bold text-gray-900">
                 {notificationContent.title}
               </Text>
 
-              {notification.metadata?.senderName && (
-                <Text className=" text-sm text-gray-600">
-                  From: <Text className="font-semibold">{notification.metadata.senderName}</Text>
+              {isEmployerApplication && (
+                <Text className="text-sm text-gray-600">
+                  Company:{' '}
+                  <Text className="font-semibold">{notification.metadata?.company_name}</Text>
                 </Text>
               )}
-              <View className=" flex-row  gap-2">
+
+              <View className="mt-2 flex-row gap-2">
                 <Text className="text-sm text-gray-500">{date},</Text>
                 <Text className="text-sm text-gray-500">{time}</Text>
               </View>
             </View>
-            <Text variant="bodyMedium" className="mb-4  text-gray-700">
+
+            <Text variant="bodySmall" className="mb-4 text-gray-700">
               {notificationContent.message}
             </Text>
+
+            {isEmployerApplication && (
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-gray-900">Application Details:</Text>
+                <Text className="text-sm text-gray-600">
+                  Status: {applicationStatus.toUpperCase()}
+                </Text>
+                <Text className="mt-1 text-sm text-gray-600">
+                  Submitted on:{' '}
+                  {new Date(notification.metadata?.submitted_at ?? Date.now()).toLocaleDateString()}
+                </Text>
+              </View>
+            )}
+
             {notification.metadata?.job_postings?.job_title && (
               <View className="mb-4">
                 <Text className="text-primary text-sm font-medium">Position:</Text>
@@ -194,12 +271,38 @@ const NotificationItem = memo(
                 </Text>
               </View>
             )}
-            {/* {role === 'employer' && ( */}
-            <SecondaryButtons title="See Profile" onPress={handleViewProfile} />
-            {/* // )} */}
-            {/* {role === 'jobSeeker' && (
-              <SecondaryButtons title="See Instructions" onPress={handleViewResponse} />
-            )} */}
+
+            {notification.type === 'job_application' && (
+              <SecondaryButtons title="See Profile" onPress={handleViewProfile} />
+            )}
+
+            {notification.type === 'application_update' && (
+              <View className="mt-3">
+                {notification.metadata?.decision === 'accepted' && (
+                  <>
+                    <Text className="text-primary text-sm font-semibold">Hiring Instructions:</Text>
+                    <Text className="text-sm text-gray-600">
+                      {notification.metadata?.instructions || 'No specific instructions provided'}
+                    </Text>
+                  </>
+                )}
+
+                {notification.metadata?.decision === 'rejected' && (
+                  <>
+                    <SecondaryButtons title="View Profile" onPress={handleViewProfile} />
+                    <SecondaryModal visible={responseModal} onClose={handleCloseProfile}>
+                      <View className="m-2">
+                        <Text className="text-error text-sm font-semibold">Rejection Reasons:</Text>
+                        <Text className="text-sm text-gray-600">
+                          {notification.metadata?.rejectionReasons ||
+                            'No specific reasons provided'}
+                        </Text>
+                      </View>
+                    </SecondaryModal>
+                  </>
+                )}
+              </View>
+            )}
           </View>
         </SecondaryModal>
 
@@ -215,11 +318,11 @@ const NotificationItem = memo(
           />
         </PrimaryModal>
         {/* <SecondaryModal visible={responseModal} onClose={handleCloseProfile}>
-          <NextSteps
-            status={notification.metadata?.decision || 'pending'}
-            metadata={notification.metadata}
-          />
-        </SecondaryModal> */}
+            <NextSteps
+              status={notification.metadata?.decision || 'pending'}
+              metadata={notification.metadata}
+            />
+          </SecondaryModal> */}
       </>
     );
   },

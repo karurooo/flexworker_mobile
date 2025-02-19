@@ -58,6 +58,13 @@ export const CoverLetterSchema = z.object({
   coverLetter: z.string().min(1, 'Cover letter is required'),
 });
 
+// Base Job Seeker Job Skills Schema
+export const JobSkillsSchema = z.object({
+  jobIndustry: z.string(),
+  jobSpecialization: z.string(),
+  customSpecialization: z.string().optional(),
+});
+
 // Base Job Seeker Present Address Schema
 export const presentAddressSchema = z.object({
   region: z.string().min(1, 'Region is required'),
@@ -67,14 +74,10 @@ export const presentAddressSchema = z.object({
   street: z.string().min(1, 'Street is required'),
   zipCode: z.string().min(1, 'Zip code is required'),
 });
-// Base Job Seeker Job Skills Schema
-export const JobSkillsSchema = z.object({
-  jobIndustry: z.string(),
-  jobSpecialization: z.string(),
-});
-export type JobSkillsFormData = z.infer<typeof JobSkillsSchema>;
+
 export type PresentAddressFormData = z.infer<typeof presentAddressSchema>;
 export type CoverLetterFormData = z.infer<typeof CoverLetterSchema>;
 export type EducationalBackgroundFormData = z.infer<typeof EducationalBackgroundSchema>;
 export type JobPreferenceFormData = z.infer<typeof JobPrefreferenceSchema>;
 export type PersonalInformationFormData = z.infer<typeof PersonalInformationSchema>;
+export type JobSkillsFormData = z.infer<typeof JobSkillsSchema>;

@@ -18,6 +18,18 @@ export type NotificationJob = JobPostWithRelations & {
   read: boolean;
 };
 
+interface NotificationMetadata {
+  job_postings: {
+    job_title: string;
+    location: string;
+  };
+  applicantProfile: JobSeekerProfile;
+  applicantSkills: JobSeekerSkills[];
+  decision?: 'approved' | 'rejected';
+  instructions?: string;
+  rejectionReasons?: string;
+}
+
 export const NotificationService = {
   initialize: async (userId: string) => {
     const { data: notif, error } = await supabase
@@ -60,8 +72,7 @@ export const NotificationService = {
   sendApplicationNotification: async (
     jobPost: JobPost,
     applicantId: string,
-    applicantProfile: JobSeekerProfile,
-    applicantSkills: JobSeekerSkills
+    applicantProfile: JobSeekerProfile
   ) => {
     if (!jobPost.id) {
       throw new Error('Job post ID is required for notifications');
@@ -85,6 +96,11 @@ export const NotificationService = {
 
     const receiverId = jobPost.employer_user_id ?? employerData.user_id;
 
+    const applicantSkillsData = await supabase
+      .from('job_seeker_skills')
+      .select('industry, specialization')
+      .eq('user_id', applicantId);
+
     const { data, error } = await supabase
       .from('notifications')
       .insert([
@@ -100,8 +116,11 @@ export const NotificationService = {
               job_title: jobPost.job_title,
               location: jobPost.location,
             },
-            applicantProfile: applicantProfile,
-            applicantSkills: applicantSkills,
+            applicantProfile: {
+              ...applicantProfile,
+              applicantSkills: applicantSkillsData.data || [],
+            },
+            applicantSkills: applicantSkillsData.data || [],
           },
           created_at: new Date().toISOString(),
         },
@@ -122,11 +141,14 @@ export const NotificationService = {
   },
 
   sendHireDecision: async (params: {
+    receiverId: string;
     applicantId: string;
     jobId: string;
     decision: 'Approved' | 'Rejected';
     employer: User;
     jobTitle: string;
+    instructions?: string;
+    rejectionReasons?: string;
   }) => {
     try {
       console.log('Starting hire decision:', params);
@@ -145,19 +167,17 @@ export const NotificationService = {
       console.log('sender id', employer?.user_id);
 
       console.log('Creating notification with:', {
-        receiver_id: params.applicantId,
+        receiver_id: params.receiverId,
         type: 'application_update',
         metadata: {
-          decision: params.decision.toLowerCase(),
+          decision: params.decision === 'Approved' ? 'accepted' : 'rejected',
           jobId: params.jobId,
           job_title: params.jobTitle,
           employer: {
             company_name: params.employer.company_name,
           },
-          job_postings: {
-            job_title: params.jobTitle,
-            company_name: params.employer.company_name,
-          },
+          instructions: params.instructions,
+          rejectionReasons: params.rejectionReasons,
         },
       });
 
@@ -166,14 +186,14 @@ export const NotificationService = {
         .from('notifications')
         .insert([
           {
+            receiver_id: params.receiverId,
             sender_id: employer?.user_id,
-            receiver_id: applicant?.id,
             type: 'application_update',
             job_posting_id: params.jobId,
             title: `Application ${params.decision}`,
             message: `Your application for ${params.jobTitle} was ${params.decision}`,
             metadata: {
-              decision: params.decision.toLowerCase(),
+              decision: params.decision === 'Approved' ? 'accepted' : 'rejected',
               jobId: params.jobId,
               job_title: params.jobTitle,
               employer: {
@@ -184,6 +204,8 @@ export const NotificationService = {
                 job_title: params.jobTitle,
                 company_name: params.employer.company_name,
               },
+              instructions: params.instructions,
+              rejectionReasons: params.rejectionReasons,
             },
           },
         ])
@@ -199,5 +221,41 @@ export const NotificationService = {
       console.error('Full failure:', error);
       throw error;
     }
+  },
+
+  getAdminResponses: async (userId: string) => {
+    if (!userId || !/^[0-9a-f-]{36}$/.test(userId)) {
+      throw new Error('Invalid user session - please log in again');
+    }
+
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('receiver_id', userId)
+      .eq('type', 'employer_application')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Notification fetch error:', error);
+      throw new Error('Failed to load notifications - please try again later');
+    }
+
+    return data;
+  },
+
+  getUserNotifications: async (userId: string) => {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('receiver_id', userId)
+      .order('created_at', { ascending: false });
+
+    return (
+      data?.map((n) => ({
+        ...n,
+        metadata: n.metadata || {},
+        type: n.type === 'application_update' ? n.type : 'legacy',
+      })) || []
+    );
   },
 };

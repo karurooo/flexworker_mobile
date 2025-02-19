@@ -4,18 +4,18 @@ import { JobPostWithRelations, SalaryType } from '~/types/employers';
 export const getMatchedJobs = async (userId?: string) => {
   if (!userId) return [];
 
-  const { data: jobSeeker } = await supabase
-    .from('job_seeker')
-    .select('job_preference')
-    .eq('id', userId)
-    .single();
+  const { data: skills } = await supabase
+    .from('job_seeker_skills')
+    .select('industry')
+    .eq('user_id', userId);
 
-  if (!jobSeeker?.job_preference?.job_industry) return [];
+  const industries = skills?.map((s) => s.industry) || [];
+  if (industries.length === 0) return [];
 
   const { data: jobPostings, error } = await supabase
     .from('job_postings')
     .select('*, employers:employer_id (company_name, user_id)')
-    .eq('job_industry', jobSeeker.job_preference.job_industry)
+    .in('job_industry', industries)
     .range(0, 50)
     .order('created_at', { ascending: false });
 

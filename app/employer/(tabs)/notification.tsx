@@ -20,7 +20,7 @@ export default function Notification() {
 
   const filteredNotifications = notifications.filter(
     (n) =>
-      ['new_application', 'job_application'].includes(n.type) && // Update filter
+      (n.type === 'job_application' || n.type === 'employer_application') && // Show both types
       (n.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         n.message?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -66,20 +66,17 @@ export default function Notification() {
     useNotificationStore.getState().markAsRead(id);
   };
 
+  const loadAdminResponses = async () => {
+    if (!userId) return;
+
+    const responses = await NotificationService.getAdminResponses(userId);
+    useNotificationStore.getState().setNotifications(responses);
+  };
+
   return (
     <Container>
       <View className="h-[15%]">
-        <View className="h-full flex-row items-center gap-2 rounded-br-[75px] bg-navy">
-          <Search
-            onSearch={setSearchTerm}
-            placeholder="Search notifications..."
-            containerStyle={{
-              flex: 1,
-              backgroundColor: 'transparent',
-              marginHorizontal: 16,
-            }}
-          />
-        </View>
+        <View className="h-full flex-row items-center gap-2 rounded-br-[75px] bg-navy"></View>
       </View>
       <View className=" mx-4 h-[85%] flex-1">
         <FlatList

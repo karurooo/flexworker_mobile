@@ -155,7 +155,7 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
                 onClose={onCloseModal}
               />
             )}
-            <Text className="mb-4  text-sm text-gray-600">
+            <Text className="mb-2  text-sm text-gray-600">
               Note: Use the Image button to upload a file and the Camera button to take a selfie
               with the certificate.
             </Text>

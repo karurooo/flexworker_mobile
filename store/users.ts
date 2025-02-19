@@ -22,6 +22,8 @@ interface UserState {
   validateSession: () => Promise<boolean>;
   isReady: boolean;
   initialize: () => Promise<void>;
+  sessionError: boolean;
+  setSessionError: (error: boolean) => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
@@ -33,6 +35,8 @@ export const useUserStore = create<UserState>((set) => ({
   role: null,
   currentUser: null,
   isReady: false,
+  sessionError: false,
+  setSessionError: (error) => set({ sessionError: error }),
 
   initializeAuth: async () => {
     try {
@@ -62,6 +66,7 @@ export const useUserStore = create<UserState>((set) => ({
         authID: null,
         email: '',
         role: null,
+        sessionError: true,
       });
 
       throw new Error(errorMessage);

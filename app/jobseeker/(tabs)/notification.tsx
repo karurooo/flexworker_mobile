@@ -9,6 +9,8 @@ import SearchBar from '~/components/Shared/Search';
 import { useUserData } from '~/hooks/query/useUserData';
 import { useTheme } from 'react-native-paper';
 import { useRouter } from 'expo-router';
+import Alert from '~/components/Shared/Alerts';
+import Header from '~/components/Shared/Header';
 
 export default function Notification() {
   const { notifications, markAsRead } = useNotificationStore();
@@ -21,22 +23,18 @@ export default function Notification() {
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const router = useRouter();
+  const [loadError, setLoadError] = useState('');
   const filteredNotifications = useMemo(
     () =>
       notifications.filter((n) => {
+        // Only show application_update type notifications
+        const isApplicationUpdate = n.type === 'application_update';
+
         const matchesSearch =
           n.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           n.message?.toLowerCase().includes(searchQuery.toLowerCase());
 
-        // Handle both application_update and direct status types
-        const isApplicationResponse =
-          n.type === 'application_update' || ['accepted', 'rejected'].includes(n.type);
-
-        const hasValidDecision = ['approved', 'rejected'].includes(
-          n.metadata?.decision?.toLowerCase() || n.type.toLowerCase()
-        );
-
-        return matchesSearch && isApplicationResponse && hasValidDecision;
+        return isApplicationUpdate && matchesSearch;
       }),
     [notifications, searchQuery]
   );
@@ -59,23 +57,28 @@ export default function Notification() {
     };
   }, [userId, notifications]);
 
-  const loadNotifications = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await NotificationService.initialize(userId!);
-      useNotificationStore.getState().setNotifications(data || []);
-      console.log('Loaded notifications:', data);
-    } catch (error) {
-      setError('Failed to load notifications');
-      console.error('Error loading notifications:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useFocusEffect(
     useCallback(() => {
+      const loadNotifications = async () => {
+        try {
+          if (!userId) {
+            throw new Error('User session invalid');
+          }
+
+          const data = await NotificationService.getUserNotifications(userId);
+          useNotificationStore.getState().setNotifications(data);
+          setError(null);
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : 'Failed to load notifications';
+
+          setLoadError(errorMessage);
+          setError(errorMessage);
+        } finally {
+          setLoading(false);
+        }
+      };
+
       loadNotifications();
     }, [userId])
   );
@@ -89,6 +92,13 @@ export default function Notification() {
         filtered: filteredNotifications.length,
       },
     });
+  }, [filteredNotifications]);
+
+  useEffect(() => {
+    console.log(
+      'Application Update Metadata:',
+      filteredNotifications.filter((n) => n.type === 'application_update').map((n) => n.metadata)
+    );
   }, [filteredNotifications]);
 
   const [updateTrigger, setUpdateTrigger] = useState(0);
@@ -113,13 +123,12 @@ export default function Notification() {
 
   return (
     <Container>
+      {loadError && (
+        <Alert isVisible variant="error" title="Notification Error" message={loadError} />
+      )}
       <View className="h-[15%] ">
         <View className="h-full flex-row items-center gap-2 rounded-br-[75px] bg-navy ">
-          <SearchBar
-            onSearch={(query: string) => setSearchQuery(query)}
-            placeholder="Search notifications..."
-            debounceTime={300}
-          />
+          <Header />
         </View>
       </View>
       <View className=" mx-4 h-[85%] flex-1">

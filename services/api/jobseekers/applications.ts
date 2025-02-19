@@ -1,7 +1,7 @@
 import { supabase } from '~/services/supabase';
 import { Application, ApplicationStatus } from '~/types/applications';
 import { JobPost } from '~/types/employers';
-import { getJobseekerData } from './jobseekerDataApi';
+import { getJobseekerData, getJobSeekerSkillsData } from './jobseekerDataApi';
 
 export const ApplicationService = {
   applyToJob: async (jobPostingId: string, jobSeekerId: string) => {
@@ -16,7 +16,7 @@ export const ApplicationService = {
     // Use pre-fetched data from react-query cache instead of new query
     console.log('Applying to job:', jobSeekerId);
     const profile = await getJobseekerData(jobSeekerId);
-
+    const jobSeekerSkills = await getJobSeekerSkillsData(jobSeekerId);
     console.log('Cached profile data:', profile);
     if (!profile) {
       return {
@@ -33,8 +33,10 @@ export const ApplicationService = {
       profile.job_preference?.location,
       profile.educational_background?.bachelor,
       profile.present_address?.city,
+      jobSeekerSkills,
     ].every((field) => !!field);
 
+    console.log('Profile validation:', isValidProfile);
     if (!isValidProfile) {
       return {
         data: null,
