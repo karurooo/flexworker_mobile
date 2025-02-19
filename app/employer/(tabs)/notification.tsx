@@ -8,6 +8,7 @@ import NotificationItem from '~/components/Shared/NotificationItem';
 import Search from '~/components/Shared/Search';
 import { useUserStore } from '~/store/users';
 import { useUserData } from '~/hooks/query/useUserData';
+import Header from '~/components/Shared/Header';
 
 export default function Notification() {
   const { notifications, markAsRead } = useNotificationStore();
@@ -76,7 +77,9 @@ export default function Notification() {
   return (
     <Container>
       <View className="h-[15%]">
-        <View className="h-full flex-row items-center gap-2 rounded-br-[75px] bg-navy"></View>
+        <View className="h-full flex-row items-center gap-2 rounded-br-[75px] bg-navy px-4">
+          <Header />
+        </View>
       </View>
       <View className=" mx-4 h-[85%] flex-1">
         <FlatList

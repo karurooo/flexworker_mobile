@@ -10,14 +10,17 @@ import ExtendedFab from '~/components/Shared/ExtendedFab';
 import JobPost from '~/components/Employer/JobPost';
 import PostedJobsList from '~/components/Employer/PostedJobs';
 import { usePostedJobs } from '~/hooks/query/useJobData';
-import { useEmployerData } from '~/hooks/query/useEmployerData';
+import { useEmployerData, useEmployerStatus } from '~/hooks/query/useEmployerData';
 
 export default function Profile() {
-  const { data: user, isLoading, isError } = useUserData();
+  const { data: user } = useUserData();
   const [showModal, setShowModal] = useState(false);
   const { data: employer, isLoading: employerLoading, error: employerError } = useEmployerData();
+  const { data: status } = useEmployerStatus();
+
+  const isApproved = status === 'Approved';
   const employerId = employer?.id;
-  const { data: posts } = usePostedJobs(employerId!);
+  const { data: posts } = usePostedJobs(employerId ?? '');
 
   if (employerLoading) {
     return (
@@ -47,7 +50,12 @@ export default function Profile() {
         <Stats />
         <PostedJobsList />
 
-        <ExtendedFab onPress={() => setShowModal(true)} iconName={'add'} />
+        <ExtendedFab
+          onPress={() => isApproved && setShowModal(true)}
+          iconName={'add'}
+          disabled={!isApproved}
+          disabledHint="Complete verification to post jobs"
+        />
         {showModal && (
           <PrimaryModal
             visible={showModal}

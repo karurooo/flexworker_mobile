@@ -236,7 +236,7 @@ export const NotificationService = {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Notification fetch error:', error);
+      console.log('Notification fetch error:', error);
       throw new Error('Failed to load notifications - please try again later');
     }
 

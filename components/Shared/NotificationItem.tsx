@@ -192,7 +192,7 @@ const NotificationItem = memo(
                   {!notification.is_read && <View className="bg-primary h-2 w-2 rounded-full" />}
                 </View>
                 <Text
-                  variant="bodySmall"
+                  variant="bodyMedium"
                   className="mt-2 leading-5"
                   style={{ color: theme.colors.onSurfaceVariant }}>
                   {notificationContent.message}
@@ -246,7 +246,7 @@ const NotificationItem = memo(
               </View>
             </View>
 
-            <Text variant="bodySmall" className="mb-4 text-gray-700">
+            <Text variant="bodyMedium" className="mb-4 text-gray-700">
               {notificationContent.message}
             </Text>
 

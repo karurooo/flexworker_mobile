@@ -125,7 +125,6 @@ export const recoverSession = async () => {
 
     if (error) {
       await SecureStore.deleteItemAsync(SESSION_KEY);
-      throw error;
     }
 
     return data.session;
