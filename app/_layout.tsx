@@ -11,20 +11,13 @@ import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { supabase } from '~/services/supabase';
 import { setSession } from '~/services/supabase/session';
-import { useUserData } from '~/hooks/query/useUserData';
 import { userDataApi } from '~/services/api/users/userDataApi';
 
 export default function RootLayout() {
   const queryClient = new QueryClient();
-  const { isAuthenticated, initializeAuth, role } = useUserStore();
+  const { isAuthenticated, initializeAuth } = useUserStore();
   const [isReady, setIsReady] = useState(false); // Track app readiness
   const router = useRouter();
-
-  console.log('Auth State:', {
-    isReady,
-    isAuthenticated: useUserStore.getState().isAuthenticated,
-    role: useUserStore.getState().role,
-  });
 
   // Initialize authentication state when the app starts
   useEffect(() => {
@@ -82,7 +75,10 @@ export default function RootLayout() {
       }
     };
 
-    checkAuthAndNavigate();
+    checkAuthAndNavigate().catch(() => {
+      useUserStore.getState().clearAuth();
+      router.replace('/auth/signin');
+    });
   }, [isReady, isAuthenticated, router]);
 
   {

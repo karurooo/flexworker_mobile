@@ -22,6 +22,8 @@ interface UserState {
   validateSession: () => Promise<boolean>;
   isReady: boolean;
   initialize: () => Promise<void>;
+  sessionError: boolean;
+  setSessionError: (error: boolean) => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
@@ -33,6 +35,8 @@ export const useUserStore = create<UserState>((set) => ({
   role: null,
   currentUser: null,
   isReady: false,
+  sessionError: false,
+  setSessionError: (error) => set({ sessionError: error }),
 
   initializeAuth: async () => {
     try {
@@ -49,8 +53,23 @@ export const useUserStore = create<UserState>((set) => ({
         set({ isReady: true });
       }
     } catch (error) {
-      console.error('Auth initialization error:', error);
-      set({ isReady: true });
+      let errorMessage = 'Session expired. Please sign in again.';
+      if (error instanceof Error && error.message.includes('Invalid Refresh Token')) {
+        errorMessage = 'Your session has expired. Please sign in again.';
+        await SecureStore.deleteItemAsync('session'); // Clear invalid token
+      }
+
+      set({
+        isReady: true,
+        isAuthenticated: false,
+        userSession: null,
+        authID: null,
+        email: '',
+        role: null,
+        sessionError: true,
+      });
+
+      throw new Error(errorMessage);
     }
   },
 
@@ -82,8 +101,7 @@ export const useUserStore = create<UserState>((set) => ({
       await SecureStore.deleteItemAsync('session'); // Clear the session token
       set({ isAuthenticated: false, userSession: null, authID: null, email: '', role: null });
     } catch (error) {
-      console.error('Sign-out error:', error);
-      throw error; // Propagate the error
+      throw error;
     }
   },
 

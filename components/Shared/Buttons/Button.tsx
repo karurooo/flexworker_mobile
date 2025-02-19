@@ -21,7 +21,7 @@ const Buttons = forwardRef<View, ButtonProps>(
     <TouchableOpacity
       ref={ref}
       disabled={disabled}
-      className={`my-2 h-11 w-full items-center justify-center rounded-xl ${buttonVariants[variant]}`}
+      className={`my-1 h-11 w-full items-center justify-center rounded-xl ${buttonVariants[variant]}`}
       {...props}>
       <Text className="text-center text-sm font-semibold text-white">{title}</Text>
     </TouchableOpacity>

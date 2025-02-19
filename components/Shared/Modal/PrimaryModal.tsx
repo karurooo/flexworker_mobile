@@ -23,7 +23,7 @@ const PrimaryModal: React.FC<PrimaryModalProps> = memo(
         avoidKeyboard={avoidKeyboard}
         hideModalContentWhileAnimating={true}
         backdropTransitionOutTiming={0}>
-        <View className="flex-1 overflow-hidden rounded-lg bg-white p-5">
+        <View className="flex-1 overflow-hidden rounded-lg bg-gray-100 p-5">
           {/* Close Button */}
           <TouchableOpacity
             style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}

@@ -80,8 +80,6 @@ export interface JobSeeker {
     techvoc: string;
   };
   jobPreference: {
-    jobIndustry: string;
-    jobSpecialization: string;
     workType: WorkTypeCategory.ALL;
     salaryType: SalaryTypeCategory.MONTHLY;
     minSalary: number;
@@ -90,6 +88,11 @@ export interface JobSeeker {
     location: LocationCategory.COUNTRY;
   };
   coverLetter: string;
+}
+
+export interface JobSeekerSkills {
+  jobIndustry: string;
+  jobSpecialization: string;
 }
 export interface JobSeekerProps {
   onCloseModal: () => void;
@@ -124,8 +127,6 @@ export interface JobSeekerProfile {
     techvoc: string;
   };
   jobPreference: {
-    jobIndustry: string;
-    jobSpecialization: string;
     workType: WorkTypeCategory.ALL;
     salaryType: SalaryTypeCategory.MONTHLY;
     minSalary: number;
@@ -135,6 +136,12 @@ export interface JobSeekerProfile {
   };
   coverLetter: string;
 }
+
+export interface JobSeekerSkillsProfile {
+  jobIndustry: string;
+  jobSpecialization: string;
+}
+
 export interface JobSeekerProps {
   onCloseModal: () => void;
 }

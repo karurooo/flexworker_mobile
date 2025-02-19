@@ -5,6 +5,7 @@ import {
   postCoverLetter,
   postJobPreference,
   postPresentAddress,
+  postJobSkills,
 } from '~/services/api/jobseekers/jobseekerDataApi';
 import { JOB_SEEKER_QUERY_KEY } from '~/constants/auth/queryKeys';
 import { useUserData } from '~/hooks/query/useUserData';
@@ -13,6 +14,7 @@ import {
   CoverLetterFormData,
   JobPreferenceFormData,
   PresentAddressFormData,
+  JobSkillsFormData,
 } from '~/schema/jobeekerSchema';
 
 export const useJobSeekerMutations = () => {
@@ -65,11 +67,20 @@ export const useJobSeekerMutations = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [JOB_SEEKER_QUERY_KEY, userId] }),
   });
 
+  const jobSkillsMutation = useMutation({
+    mutationFn: (data: JobSkillsFormData) => {
+      if (!userId) throw new Error('User not authenticated');
+      return postJobSkills(data, userId);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [JOB_SEEKER_QUERY_KEY, userId] }),
+  });
+
   return {
     personalInfoMutation,
     educationalBackgroundMutation,
     coverLetterMutation,
     jobPreferenceMutation,
     presentAddressMutation,
+    jobSkillsMutation,
   };
 };

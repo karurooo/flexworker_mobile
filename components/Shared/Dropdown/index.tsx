@@ -49,11 +49,11 @@ const Dropdown = memo(
       <View className="relative">
         {/* Toggle Dropdown */}
         <TouchableOpacity
-          className=" w-full flex-row items-center justify-between rounded-lg border border-gray-400 bg-white/50 p-3"
+          className=" w-full flex-row items-center justify-between rounded-lg  bg-white p-3"
           onPress={() => setIsOpen(!isOpen)}
           activeOpacity={0.7}>
           <Text
-            className="text-background font-Poppins border border-white"
+            className="text-background font-Poppins "
             style={{ color: value ? '#1F355C' : placeholderColor }}>
             {value || placeholder}
           </Text>
@@ -83,7 +83,7 @@ const Dropdown = memo(
             initialNumToRender={10}
             maxToRenderPerBatch={5}
             windowSize={7}
-            className="z-10 rounded-lg border border-gray-300 bg-white"
+            className="z-10 rounded-lg  bg-white"
           />
         )}
 

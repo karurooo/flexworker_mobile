@@ -4,7 +4,6 @@ import { useUserData } from '~/hooks/query/useUserData';
 import { useUserStore } from '~/store/users';
 import ProfileHeader from '~/components/Employer/ProfileHeader';
 import Stats from '~/components/Employer/ProfileStats';
-import EmployerFields from '~/components/Employer/CommonFields';
 import { useState } from 'react';
 import PrimaryModal from '~/components/Shared/Modal/PrimaryModal';
 import ExtendedFab from '~/components/Shared/ExtendedFab';
@@ -15,7 +14,6 @@ import { useEmployerData } from '~/hooks/query/useEmployerData';
 
 export default function Profile() {
   const { data: user, isLoading, isError } = useUserData();
-  const email = useUserStore.getState().email;
   const [showModal, setShowModal] = useState(false);
   const { data: employer, isLoading: employerLoading, error: employerError } = useEmployerData();
   const employerId = employer?.id;

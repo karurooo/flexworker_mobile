@@ -1,5 +1,5 @@
 import { AntDesign } from '@expo/vector-icons';
-import { View, Text, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, FlatList, Alert } from 'react-native';
 import CameraCapture from '~/components/Shared/CameraCapture';
 import PickImage from '~/components/Shared/PickImage';
 import ProfilePicture from '~/components/Shared/ProfilePicture';
@@ -15,15 +15,18 @@ import PrimaryModal from '~/components/Shared/Modal/PrimaryModal';
 import EducationalBackgroundForm from '~/components/Jobseeker/Education';
 import CoverLetterForm from '~/components/Jobseeker/CoverLetter';
 import JobPreferenceForm from '~/components/Jobseeker/JobPreference';
-import { useJobseekerData } from '~/hooks/query/useJobSeekerData';
+import JobSkillsForm from '~/components/Jobseeker/JobSkills';
+import { useJobseekerData, useJobSeekerSkillsData } from '~/hooks/query/useJobSeekerData';
 import React from 'react';
 import type { ListRenderItem } from 'react-native';
 import { Card } from 'react-native-paper';
 import { FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from 'react-native-paper';
+import { deleteJobSeekerSkillsData } from '~/services/api/jobseekers/jobseekerDataApi';
+import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
 
 interface ProfileSection {
-  key: 'personal' | 'education' | 'job-preference' | 'cover-letter';
+  key: 'personal' | 'education' | 'job-preference' | 'cover-letter' | 'job-skills';
   title: string;
   content: any;
   modalControl: (value: boolean) => void;
@@ -66,8 +69,27 @@ const Profile = React.memo(() => {
   const [education, setEducation] = useState(false);
   const [coverLetter, setCoverLetter] = useState(false);
   const [jobPreference, setJobPreference] = useState(false);
+  const [jobSkills, setJobSkills] = useState(false);
 
   const { data: jobSeekerData } = useJobseekerData();
+  const { data: jobSeekerSkillsData, refetch: refetchJobSeekerSkills } = useJobSeekerSkillsData();
+  const queryClient = useQueryClient(); // Initialize queryClient
+
+  const handleDeleteSkill = async (id: string) => {
+    try {
+      await deleteJobSeekerSkillsData(id);
+
+      // Refetch job skills data
+      await refetchJobSeekerSkills();
+
+      // Invalidate the matchedJobs query to trigger a refetch
+      await queryClient.invalidateQueries({ queryKey: ['matchedJobs', user?.id] });
+
+      console.log('Skill deleted successfully', id);
+    } catch (error) {
+      console.error('Failed to delete skill:', error);
+    }
+  };
 
   const profileSections = React.useMemo<ProfileSection[]>(
     () => [
@@ -95,8 +117,14 @@ const Profile = React.memo(() => {
         content: jobSeekerData?.cover_letter,
         modalControl: setCoverLetter,
       },
+      {
+        key: 'job-skills',
+        title: 'Job Skills',
+        content: jobSeekerSkillsData,
+        modalControl: setJobSkills,
+      },
     ],
-    [jobSeekerData]
+    [jobSeekerData, jobSeekerSkillsData]
   );
 
   const renderSection = React.useCallback<ListRenderItem<ProfileSection>>(
@@ -104,7 +132,12 @@ const Profile = React.memo(() => {
       <View className="mb-6 rounded-lg bg-gray-50 p-4 shadow-sm">
         <View className="flex-row items-center justify-between">
           <Text className="text-xl font-semibold text-navy">{item.title}</Text>
-          <SecondaryButtons title="Edit" onPress={() => item.modalControl(true)} className="w-24" />
+          <TouchableOpacity
+            onPress={() => item.modalControl(true)}
+            className="bg-primary flex-row items-center justify-center rounded-lg px-4 py-2">
+            <AntDesign name="edit" size={18} color="black" />
+            <Text className="ml-2 text-sm font-medium text-black">Edit</Text>
+          </TouchableOpacity>
         </View>
         {renderSectionContent(item.key, item.content)}
       </View>
@@ -113,7 +146,7 @@ const Profile = React.memo(() => {
   );
 
   const renderSectionContent = (
-    key: 'personal' | 'education' | 'job-preference' | 'cover-letter',
+    key: 'personal' | 'education' | 'job-preference' | 'cover-letter' | 'job-skills',
     content: any
   ) => {
     if (!content) return <Text className="mt-2 text-gray-500">No information provided</Text>;
@@ -143,9 +176,6 @@ const Profile = React.memo(() => {
         return (
           <Card.Content className="p-4">
             <View className="flex-1">
-              <Text style={theme.fonts.titleMedium} className="font-bold text-gray-900">
-                Education Background
-              </Text>
               <View className="mt-2 space-y-2">
                 {renderEducationItem('Elementary', content.elementary)}
                 {renderEducationItem('High School', content.highschool)}
@@ -160,20 +190,12 @@ const Profile = React.memo(() => {
         return (
           <Card.Content className="p-4">
             <View className="flex-1">
-              <Text style={theme.fonts.titleMedium} className="font-bold text-gray-900">
-                Job Preferences
-              </Text>
-              <View className="mt-2 flex-row items-center justify-between">
-                <Text style={theme.fonts.labelSmall} className="text-primary font-medium">
-                  {content.job_industry || 'Any Industry'}
-                </Text>
-                <Text style={theme.fonts.labelSmall} className="text-gray-500">
-                  {content.work_type || 'Any Type'}
-                </Text>
+              <View className="mt-2 space-y-2">
+                {renderJobPreferenceItem('Work Type', content.work_type)}
+                {renderJobPreferenceItem('Salary Type', content.salary_type)}
+                {renderJobPreferenceItem('Plan To Work', content.plan_to_work)}
+                {renderJobPreferenceItem('Location', content.location)}
               </View>
-              <Text style={theme.fonts.bodySmall} className="mt-2 text-gray-500">
-                {formatLocation(content.location) || 'Any Location'}
-              </Text>
             </View>
           </Card.Content>
         );
@@ -181,12 +203,38 @@ const Profile = React.memo(() => {
       case 'cover-letter':
         return (
           <Card.Content className="p-4">
-            <Text style={theme.fonts.titleMedium} className="font-bold text-gray-900">
-              Cover Letter
-            </Text>
             <Text style={theme.fonts.bodySmall} className="mt-2 text-gray-800">
               {content || 'No cover letter provided'}
             </Text>
+          </Card.Content>
+        );
+
+      case 'job-skills':
+        return (
+          <Card.Content className="p-4">
+            {Array.isArray(content) && content.length > 0 ? (
+              content.map((skill, index) => (
+                <View className="flex-row items-center justify-between" key={index}>
+                  <Text style={theme.fonts.bodySmall} className="mt-2 text-gray-800">
+                    {skill.specialization || 'No skill fetched'}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => {
+                      Alert.alert('Delete Skill', 'Are you sure you want to delete this skill?', [
+                        { text: 'Cancel', style: 'cancel' },
+                        { text: 'Delete', onPress: () => handleDeleteSkill(skill.id) },
+                      ]);
+                    }}
+                    className="flex-row items-center justify-center rounded-lg px-4 py-2">
+                    <AntDesign name="delete" size={16} color="red" />
+                  </TouchableOpacity>
+                </View>
+              ))
+            ) : (
+              <Text style={theme.fonts.bodySmall} className="mt-2 text-gray-800">
+                No job skills provided
+              </Text>
+            )}
           </Card.Content>
         );
 
@@ -206,9 +254,20 @@ const Profile = React.memo(() => {
     </View>
   );
 
+  const renderJobPreferenceItem = (level: string, value: string) => (
+    <View className="flex-row items-center justify-between">
+      <Text style={theme.fonts.labelMedium} className="text-gray-500">
+        {level}
+      </Text>
+      <Text style={theme.fonts.bodyMedium} className="text-gray-800">
+        {value || 'Not specified'}
+      </Text>
+    </View>
+  );
+
   return (
     <Container>
-      <View className="h-[15%] bg-white">
+      <View className="h-[15%]">
         <View className="h-full flex-row items-center gap-2 rounded-br-[75px] bg-navy px-4">
           <ProfileHeader />
         </View>
@@ -231,6 +290,11 @@ const Profile = React.memo(() => {
         {jobPreference && (
           <PrimaryModal visible={jobPreference} onClose={() => setJobPreference(false)}>
             <JobPreferenceForm onCloseModal={() => setJobPreference(false)} />
+          </PrimaryModal>
+        )}
+        {jobSkills && (
+          <PrimaryModal visible={jobSkills} onClose={() => setJobSkills(false)}>
+            <JobSkillsForm onCloseModal={() => setJobSkills(false)} />
           </PrimaryModal>
         )}
       </View>

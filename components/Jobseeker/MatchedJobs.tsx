@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import { FlatList, View, TouchableOpacity } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
@@ -12,17 +12,14 @@ import { Card, useTheme, Text } from 'react-native-paper';
 import { Image } from 'expo-image';
 import { FontAwesome6 } from '@expo/vector-icons';
 import JobDetailsModal from '~/components/Shared/JobPostDetails';
-
+import SearchBar from '~/components/Shared/Search'; // Import the SearchBar component
 const ITEM_HEIGHT = 250; // Pre-calculated item height
-
 interface JobItem extends JobPost {
   company_logo?: string;
 }
-
 const formatLocation = (location: string | object) => {
   try {
     const loc = typeof location === 'string' ? JSON.parse(location) : location;
-
     // Standard format for administrative divisions
     const parts = [
       loc.region,
@@ -32,21 +29,19 @@ const formatLocation = (location: string | object) => {
       loc.street,
       loc.zipCode ? ` ${loc.zipCode}` : null,
     ].filter(Boolean);
-
     const formatted = parts.join(', ').replace(/, (\d)/, ' $1');
-
     return formatted || 'Location available upon application';
   } catch (e) {
     return typeof location === 'string' ? location : 'Location available upon application';
   }
 };
-
 const MatchedJobsList = memo(() => {
   const { data: userData } = useUserData();
   const userId = userData?.id ?? '';
   const theme = useTheme();
   const [selectedJob, setSelectedJob] = React.useState<JobPost | null>(null);
   const [modalVisible, setModalVisible] = React.useState(false);
+  const [searchQuery, setSearchQuery] = useState(''); // Add search state
 
   const handleJobPress = useCallback((job: JobPost) => {
     setSelectedJob(job);
@@ -59,6 +54,12 @@ const MatchedJobsList = memo(() => {
     enabled: !!userId,
     staleTime: 1000 * 60 * 5,
   });
+
+  // Filter jobs based on the search query
+  const filteredJobs = useMemo(() => {
+    if (!data) return [];
+    return data.filter((job) => job.job_title.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [data, searchQuery]);
 
   const renderItem = useCallback(
     ({ item }: { item: JobPost }) => (
@@ -91,7 +92,7 @@ const MatchedJobsList = memo(() => {
                 </View>
               </View>
               <Text style={theme.fonts.bodySmall} className="text-gray-500">
-                {formatLocation(item.location)}
+                {formatLocation(item.location || '')}
               </Text>
               {/* Content */}
               <Text style={theme.fonts.bodyMedium} className="leading-5  text-gray-800">
@@ -100,14 +101,12 @@ const MatchedJobsList = memo(() => {
               </Text>
               <View className=" w-full flex-1 flex-row items-center justify-between  ">
                 {/* Salary */}
-
                 {item.salary_type && (
                   <Text style={theme.fonts.labelSmall} className="text-primary font-medium">
                     <FontAwesome6 name="peso-sign" size={10} color="black" /> {item.min_salary} -{' '}
                     {item.max_salary} ({item.salary_type})
                   </Text>
                 )}
-
                 {/* Date */}
                 <Text style={theme.fonts.labelSmall} className="  text-gray-500">
                   Posted:{' '}
@@ -125,10 +124,6 @@ const MatchedJobsList = memo(() => {
     ),
     [handleJobPress]
   );
-
-  const memoizedData = useMemo(() => {
-    return (data || []).filter((p): p is JobPost => !!p?.id && !!p.created_at);
-  }, [data]);
 
   const keyExtractor = useCallback(
     (item: JobPost) => item?.id?.toString() || Math.random().toString(),
@@ -154,8 +149,18 @@ const MatchedJobsList = memo(() => {
 
   return (
     <>
+      {/* Search Bar */}
+      <View className="mx-4 my-4">
+        <SearchBar
+          onSearch={(query) => setSearchQuery(query)} // Update search query
+          placeholder="Search jobs by title..."
+          debounceTime={300}
+        />
+      </View>
+
+      {/* Jobs List */}
       <FlatList
-        data={memoizedData}
+        data={filteredJobs} // Use filtered jobs instead of raw data
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         showsVerticalScrollIndicator={false}
@@ -166,7 +171,9 @@ const MatchedJobsList = memo(() => {
         })}
         ListEmptyComponent={
           <View className="items-center p-4">
-            <Text className="text-gray-500">No matching jobs found</Text>
+            <Text className="text-gray-500">
+              {searchQuery ? 'No matching jobs found' : 'No jobs available'}
+            </Text>
             <Button title="Try Again" onPress={() => refetch()} className="mt-4" />
           </View>
         }
@@ -177,6 +184,7 @@ const MatchedJobsList = memo(() => {
         contentContainerStyle={{ paddingBottom: 40 }}
       />
 
+      {/* Job Details Modal */}
       <JobDetailsModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -185,5 +193,4 @@ const MatchedJobsList = memo(() => {
     </>
   );
 });
-
 export default MatchedJobsList;

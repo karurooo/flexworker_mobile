@@ -10,7 +10,7 @@ import {
   getTotalApplicants,
   getTotalJobPosts,
 } from '~/services/api/employers/jobPostDataApi';
-import { JobPost } from '~/types/employers';
+import { JobPost, JobPostWithRelations } from '~/types/employers';
 
 const useJobsData = () => {
   const queryClient = useQueryClient();
@@ -30,15 +30,13 @@ const useJobsData = () => {
 };
 
 const useMatchJobs = (industry?: string) => {
-  const { data: userId } = useUserData();
-  return useQuery({
-    queryKey: ['matchedJobs', userId.id, industry],
-    queryFn: () => getMatchedJobs(userId.id!),
-    staleTime: 5 * 60 * 1000,
-    enabled: !!userId && !!industry,
-    select: (data: JobPost[]) => ({
-      data: data.filter((item: JobPost) => item.min_salary > 0),
-    }),
+  const { data: user } = useUserData();
+  return useQuery<JobPostWithRelations[]>({
+    queryKey: ['matchedJobs', user?.id, industry],
+    queryFn: () => getMatchedJobs(user?.id),
+    enabled: !!user?.id && !!industry,
+    staleTime: 300_000,
+    select: (data) => data.filter((item) => item.min_salary > 0),
   });
 };
 
@@ -47,7 +45,13 @@ const usePostedJobs = (employerId: string) => {
     queryKey: ['employerJobs', employerId],
     queryFn: () => getPostByEmployer(employerId),
     enabled: !!employerId,
-    select: (data) => data.filter((p) => !!p.id && !!p.created_at),
+    select: (data) =>
+      data
+        .filter((p) => !!p.id && !!p.created_at)
+        .map((post) => ({
+          ...post,
+          employer_user_id: post.employer_user_id || '',
+        })),
   });
 };
 

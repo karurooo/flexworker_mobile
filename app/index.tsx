@@ -2,8 +2,12 @@ import { router } from 'expo-router';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import Button from '~/components/Shared/Buttons/Button';
 import { Container } from '~/components/Shared/Container';
+import { useUserStore } from '~/store/users';
+import Alert from '~/components/Shared/Alerts';
 
 export default function LandingPage() {
+  const { sessionError, setSessionError } = useUserStore();
+
   return (
     <Container>
       <View className="h-1/2 bg-navy  ">
@@ -43,6 +47,20 @@ export default function LandingPage() {
           </View>
         </View>
       </View>
+
+      {sessionError && (
+        <Alert
+          variant="error"
+          title="Session Expired"
+          message="Your session has expired. Please log in again to continue."
+          isVisible={sessionError}
+          onClose={() => setSessionError(false)}
+          onConfirm={() => {
+            setSessionError(false);
+            router.push('/auth/signin');
+          }}
+        />
+      )}
     </Container>
   );
 }

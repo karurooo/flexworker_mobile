@@ -208,7 +208,7 @@ const CommonFields = ({ onSuccess }: Props) => {
                 <SecondaryButtons title="Add Address" onPress={() => setShowAddressForm(true)} />
               ) : (
                 <TouchableOpacity
-                  className="border-background rounded-lg border p-2"
+                  className=" rounded-lg  p-2"
                   onPress={() => setShowAddressForm(true)}>
                   <Text className="gap-2">
                     {`${address?.address.street ?? ''}, ${address?.address.barangay ?? ''}, ${address?.address.city ?? ''}, ${address?.address.province ?? ''}, ${address?.address.region ?? ''}, ${address?.address.zipCode ?? ''}`}

@@ -1,16 +1,20 @@
-import { View, Text } from 'react-native';
-import { Card, useTheme } from 'react-native-paper';
+import { View, Text, TextInput } from 'react-native';
+import { Card, useTheme, Button } from 'react-native-paper';
 import { FontAwesome6 } from '@expo/vector-icons';
 import type { Notification } from '~/types/notifications';
-import { memo } from 'react';
+import { memo, useState } from 'react';
+import Buttons from './Buttons/Button';
 
 interface NextStepProps {
   status: 'accepted' | 'pending' | 'rejected';
   metadata?: Notification['metadata'];
+  onSubmit: (text: string) => void;
+  isInputMode?: boolean;
 }
 
-const NextStep = memo(({ status, metadata }: NextStepProps) => {
+const NextStep = memo(({ status, metadata, onSubmit, isInputMode }: NextStepProps) => {
   const theme = useTheme();
+  const [inputText, setInputText] = useState('');
 
   const getStatusConfig = () => {
     switch (status) {
@@ -52,6 +56,29 @@ const NextStep = memo(({ status, metadata }: NextStepProps) => {
 
   const config = getStatusConfig();
 
+  // Add text input handling
+  const renderContent = () => {
+    if (!isInputMode) return null;
+
+    return (
+      <View className="space-y-4">
+        <TextInput
+          multiline
+          numberOfLines={4}
+          placeholder={
+            status === 'accepted'
+              ? 'Enter instructions for the applicant...'
+              : 'Provide reasons for rejection...'
+          }
+          value={inputText}
+          onChangeText={setInputText}
+          className="rounded-lg border border-gray-300 p-4"
+        />
+        <Buttons title="Submit" onPress={() => onSubmit(inputText)} />
+      </View>
+    );
+  };
+
   return (
     <Card className="bg-surface m-4 p-4">
       <Card.Content className="space-y-4">
@@ -81,7 +108,7 @@ const NextStep = memo(({ status, metadata }: NextStepProps) => {
           </View>
         )}
 
-        <View className="space-y-2">
+        <View className="gap-2">
           <Text style={theme.fonts.labelMedium} className="font-medium text-gray-600">
             Next Steps:
           </Text>
@@ -94,6 +121,8 @@ const NextStep = memo(({ status, metadata }: NextStepProps) => {
             </View>
           ))}
         </View>
+
+        {renderContent()}
       </Card.Content>
     </Card>
   );
