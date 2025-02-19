@@ -78,10 +78,6 @@ export type Employer = {
   created_at?: string;
 };
 
-export interface PrivateEmployer {
-  govId: string;
-}
-
 export interface GovernmentEmployer {
   philGeps: string;
   agencyName: string;

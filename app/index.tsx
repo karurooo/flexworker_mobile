@@ -38,7 +38,7 @@ export default function LandingPage() {
             <View className="w-full flex-row items-center  justify-center gap-4 border-white  px-4 ">
               <Button
                 variant="secondary"
-                title="Press me"
+                title="Get Started"
                 onPress={() => {
                   router.push('/auth/signup');
                 }}

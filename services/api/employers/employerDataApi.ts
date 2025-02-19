@@ -6,6 +6,8 @@ import {
   SoleProprietorshipDocumentData,
 } from '~/schema/employerSchema';
 import { postEmployerStatus } from './statusDataApi';
+import { useEmployerData } from '~/hooks/query/useEmployerData';
+import { EmployerCategory } from '~/types/employers';
 
 async function postEmployerData(employer: Employer, userId: string) {
   try {
@@ -36,7 +38,7 @@ async function postEmployerData(employer: Employer, userId: string) {
       console.error('Supabase error:', error); // Log the Supabase error
       throw new Error(`Error inserting employer: ${error.message}`);
     } else {
-      console.log('Employer inserted successfully:', data);
+      console.log('Employer data inserted successfully:', data); // Log the successful insertion of employer data
     }
 
     return data;
@@ -71,6 +73,10 @@ async function postEmployerDocument<T>(
     console.error(`Error in ${table}:`, error);
     throw error;
   }
+}
+async function postPrivateEmployer(employerId: string) {
+  await postEmployerStatus(employerId); // Changed from data.employer_id to data.id
+  console.log('Private employer status updated');
 }
 
 // Government documents
@@ -169,4 +175,5 @@ export {
   postGovernmentData,
   postSoleProprietorshipData,
   postCorporationData,
+  postPrivateEmployer,
 };

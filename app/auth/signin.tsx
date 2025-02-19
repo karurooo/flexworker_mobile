@@ -27,10 +27,6 @@ export default function Signin() {
   });
 
   const { mutate, isPending, error: mutationError } = useSigninMutation();
-  const prevErrorMessageRef = useRef<string | null>(null);
-
-  const [isPressed, setIsPressed] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     if (mutationError) {
@@ -44,7 +40,6 @@ export default function Signin() {
       email: data.email,
       password: data.password,
     });
-    console.log('form data: ', data);
   };
 
   return (
