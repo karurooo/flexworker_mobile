@@ -32,7 +32,6 @@ export const signup = async ({ email, password, firstName, lastName, role }: Sig
         data: {
           first_name: firstName,
           last_name: lastName,
-          role: role,
         },
       },
     });

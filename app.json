@@ -31,6 +31,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "jsEngine": "hermes",
+      "package": "com.karuroooo.flexworkermobile"
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "a032309d-e9da-4a6d-8d87-6e30db78aac6"
       }
     }
   }
