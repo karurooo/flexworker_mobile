@@ -154,8 +154,10 @@ const CommonFields = ({ onSuccess }: Props) => {
 
   const [selectedCategory, setSelectedCategory] = useState<EmployerCategory | null>(null);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
-  const { data: employer } = useEmployerData();
-  console.log('employer data', employer);
+  const { data: employerData, isLoading: isLoadingEmployer } = useEmployerData({
+    enabled: true,
+    refetchInterval: 3000, // Refetch every 3 seconds
+  });
 
   const handleApplicationSubmit = useCallback(
     (formData: EmployerFormData) => {
@@ -164,18 +166,18 @@ const CommonFields = ({ onSuccess }: Props) => {
         return;
       }
 
-      const payload: Omit<Employer, 'id' | 'created_at'> = {
+      const payload = {
         user_id: userId,
         ...formData,
         category: formData.category as EmployerCategory,
         address: formData.address,
+        status: 'PENDING', // Add initial status
       };
 
       mutate(payload, {
         onSuccess: () => {
           setSelectedCategory(formData.category as EmployerCategory);
           setShowDocumentModal(true);
-          console.log('Selected Category', formData.category);
           onSuccess(formData.category as EmployerCategory);
         },
         onError: (error) => {
@@ -187,6 +189,29 @@ const CommonFields = ({ onSuccess }: Props) => {
     [userId, mutate, onSuccess]
   );
 
+  // Add status indicator
+  const renderStatus = () => {
+    if (!employerData) return null;
+
+    return (
+      <View className="mb-4 rounded-lg bg-gray-50 p-3">
+        <Text className="text-lg font-semibold">
+          Application Status:{' '}
+          <Text
+            className={`${
+              employerData.status === 'APPROVED'
+                ? 'text-green-600'
+                : employerData.status === 'PENDING'
+                  ? 'text-yellow-600'
+                  : 'text-red-600'
+            }`}>
+            {employerData.status}
+          </Text>
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <View className="h-full w-full rounded-2xl p-3">
       <FlatList
@@ -196,8 +221,9 @@ const CommonFields = ({ onSuccess }: Props) => {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <>
-            <Text className="text-bold  text-2xl font-bold">Employer Information</Text>
-            <Text className=" text-md  mb-4">Please fill out the following information</Text>
+            <Text className="text-bold text-2xl font-bold">Employer Information</Text>
+            <Text className="text-md mb-4">Please fill out the following information</Text>
+            {renderStatus()} {/* Add status display */}
           </>
         }
         ListFooterComponent={

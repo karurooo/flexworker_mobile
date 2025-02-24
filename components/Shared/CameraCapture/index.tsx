@@ -140,8 +140,7 @@ const CameraCapture = memo(({ onImageCaptured, title }: CameraCaptureProps) => {
       {imageUri && (
         <Image
           source={{ uri: imageUri }}
-          style={{ width: 100, height: 100, marginTop: 10 }}
-          className="rounded-lg"
+          className="h-24 w-24 rounded-lg py-4"
           resizeMode="cover"
         />
       )}

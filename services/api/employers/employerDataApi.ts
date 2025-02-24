@@ -1,5 +1,5 @@
 import { supabase } from 'services/supabase';
-import { Employer } from 'types/employers';
+import { Employer, GovernmentEmployer } from '~/types/employers';
 import {
   GovernmentDocumentData,
   CorporationDocumentData,
@@ -168,6 +168,24 @@ async function getEmployerData(userId: string) {
     throw error;
   }
 }
+
+export const submitEmployerData = async (data: any): Promise<Employer> => {
+  // Your API implementation
+  const response = await fetch('/api/employer', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return response.json();
+};
+
+export const submitGovernmentData = async (data: any): Promise<GovernmentEmployer> => {
+  // Your API implementation
+  const response = await fetch('/api/employer/government', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return response.json();
+};
 
 export {
   postEmployerData,
