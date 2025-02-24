@@ -5,7 +5,13 @@ import { EMPLOYER_DATA_QUERY_KEY } from '~/constants/auth/queryKeys';
 import { useUserData } from './useUserData';
 import { getEmployerStatus } from '~/services/api/employers/statusDataApi';
 
-const useEmployerData = () => {
+interface EmployerDataOptions {
+  enabled?: boolean;
+  refetchInterval?: number;
+  staleTime?: number;
+}
+
+const useEmployerData = (options: EmployerDataOptions = {}) => {
   const { isAuthenticated } = useUserStore();
   const { data: userData } = useUserData();
   const userId = userData?.id;
@@ -18,8 +24,12 @@ const useEmployerData = () => {
     },
     enabled: isAuthenticated,
     staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    ...options,
   });
 };
+
 const useEmployerStatus = () => {
   const { isAuthenticated } = useUserStore();
   const { data: employer } = useEmployerData();
@@ -35,4 +45,5 @@ const useEmployerStatus = () => {
     staleTime: 1000 * 60 * 5,
   });
 };
+
 export { useEmployerData, useEmployerStatus };

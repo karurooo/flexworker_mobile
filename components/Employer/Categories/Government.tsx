@@ -11,6 +11,7 @@ import CameraCapture from '~/components/Shared/CameraCapture';
 import DocumentPicker from '~/components/Shared/DocumentPicker';
 import TextInputField from '~/components/Shared/Forms/DropdownForms';
 import FormField from '~/components/Shared/Forms/FormFields';
+import { useEmployerData } from '~/hooks/query/useEmployerData';
 
 const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
   const {
@@ -25,6 +26,11 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
   const { mutate, isPending, isError, isSuccess } = useGovernmentMutation();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const { data: governmentData } = useEmployerData({
+    enabled: true,
+    refetchInterval: 3000,
+  });
 
   const formFields = useMemo(
     () => [
@@ -72,6 +78,26 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
     },
     [mutate, onCloseModal]
   );
+
+  const renderStatus = () => {
+    if (!governmentData?.governmentDocs) return null;
+
+    return (
+      <View className="mb-4">
+        <Text className="text-sm">
+          Document Status:{' '}
+          <Text
+            className={`font-semibold ${
+              governmentData.governmentDocs.status === 'APPROVED'
+                ? 'text-green-600'
+                : 'text-yellow-600'
+            }`}>
+            {governmentData.governmentDocs.status}
+          </Text>
+        </Text>
+      </View>
+    );
+  };
 
   const renderItem = useCallback(
     ({ item }: { item: any }) => {
@@ -127,8 +153,9 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
 
   return (
     <View className="flex-1 p-4">
-      <Text className=" text-2xl font-bold">Government Requirements</Text>
-      <Text className=" text-md  mb-4">Please fill out the following information</Text>
+      <Text className="text-2xl font-bold">Government Requirements</Text>
+      {renderStatus()}
+      <Text className="text-md mb-4">Please fill out the following information</Text>
       <FlatList
         data={formFields}
         renderItem={renderItem}

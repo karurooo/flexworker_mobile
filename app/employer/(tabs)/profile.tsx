@@ -19,13 +19,14 @@ export default function Profile() {
   const { data: status } = useEmployerStatus();
 
   const isApproved = status === 'Approved';
+  console.log('This is my employer: ', isApproved);
   const employerId = employer?.id;
   const { data: posts } = usePostedJobs(employerId ?? '');
 
   if (employerLoading) {
     return (
       <Container>
-        <Text>Loading employer profile...</Text>
+        <Text className="text-center text-2xl font-bold">Loading employer profile...</Text>
       </Container>
     );
   }
