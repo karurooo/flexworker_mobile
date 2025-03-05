@@ -14,7 +14,8 @@ import { FontAwesome6 } from '@expo/vector-icons';
 import JobDetailsModal from '~/components/Shared/JobPostDetails';
 import SearchBar from '~/components/Shared/Search'; // Import the SearchBar component
 import { useMatchJobs } from '~/hooks/query/useJobData';
-
+import { router } from 'expo-router';
+import SecondaryButton from '../Shared/Buttons/SecondaryButton';
 const ITEM_HEIGHT = 250; // Pre-calculated item height
 interface JobItem extends JobPost {
   company_logo?: string;
@@ -180,15 +181,32 @@ const MatchedJobsList = memo(({ selectedIndustry }: MatchedJobsListProps) => {
           index,
         })}
         ListEmptyComponent={
-          <View className="items-center p-4">
-            <Text className="text-gray-500">
+          <View className="items-center rounded-2xl border border-gray-300 p-4">
+            {/* <Text className="text-center text-gray-300">
               {searchQuery
                 ? 'No matching jobs found'
                 : selectedIndustry
                   ? `No jobs found in ${selectedIndustry}`
                   : 'No jobs available'}
-            </Text>
-            <Button title="Refresh" onPress={() => refetch()} className="mt-4" />
+            </Text> */}
+            {searchQuery ? (
+              <Text className="text-center text-gray-300">Please try a different search query</Text>
+            ) : selectedIndustry ? (
+              <Text className="text-center text-gray-300">No jobs found in {selectedIndustry}</Text>
+            ) : (
+              <View className=" w-full gap-2">
+                <Text className="text-md text-center text-gray-300">No Job Postings Found</Text>
+                <Text className="text-md text-center text-gray-300">
+                  Please setup your job industry and skills first
+                </Text>
+                <SecondaryButton
+                  title="Go to Profile"
+                  onPress={() => router.push('/jobseeker/(tabs)/profile')}
+                />
+              </View>
+            )}
+
+            <Button title="Refresh" onPress={() => refetch()} />
           </View>
         }
         initialNumToRender={6}
