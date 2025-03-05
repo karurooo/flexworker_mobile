@@ -4,12 +4,13 @@ import { JobPostWithRelations } from '~/types/employers';
 export const getMatchedJobs = async (userId?: string, selectedIndustry?: string) => {
   if (!userId) return [];
 
+  // Initialize query without filtering by employer_id
   let query = supabase
     .from('job_postings')
     .select('*, employers:employer_id (company_name, user_id)')
     .order('created_at', { ascending: false });
 
-  // If a specific industry is provided, filter by it
+  // Filter by industry
   if (selectedIndustry) {
     query = query.eq('job_industry', selectedIndustry);
   } else {

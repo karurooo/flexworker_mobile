@@ -145,7 +145,7 @@ const Profile = React.memo(() => {
           <Text className="text-xl font-semibold text-navy">{item.title}</Text>
           <TouchableOpacity
             onPress={() => item.modalControl(true)}
-            className="bg-primary flex-row items-center justify-center rounded-lg px-4 py-2">
+            className="bg-primary flex-row items-center justify-center rounded-lg border px-4 py-2">
             <AntDesign name="edit" size={18} color="black" />
             <Text className="ml-2 text-sm font-medium text-black">Edit</Text>
           </TouchableOpacity>
