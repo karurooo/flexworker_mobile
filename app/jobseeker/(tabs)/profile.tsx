@@ -24,6 +24,7 @@ import { FontAwesome6 } from '@expo/vector-icons';
 import { useTheme } from 'react-native-paper';
 import { deleteJobSeekerSkillsData } from '~/services/api/jobseekers/jobseekerDataApi';
 import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
+import SecondaryModal from '~/components/Shared/Modal/SecondaryModal';
 
 interface ProfileSection {
   key: 'personal' | 'education' | 'job-preference' | 'cover-letter' | 'job-skills';
@@ -70,6 +71,7 @@ const Profile = React.memo(() => {
   const [coverLetter, setCoverLetter] = useState(false);
   const [jobPreference, setJobPreference] = useState(false);
   const [jobSkills, setJobSkills] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   const { data: jobSeekerData } = useJobseekerData();
   const { data: jobSeekerSkillsData, refetch: refetchJobSeekerSkills } = useJobSeekerSkillsData();
@@ -89,6 +91,15 @@ const Profile = React.memo(() => {
     } catch (error) {
       console.error('Failed to delete skill:', error);
     }
+  };
+
+  const handleLogout = () => {
+    setLogoutModalVisible(true);
+  };
+
+  const performLogout = () => {
+    // Implement the logout functionality here
+    console.log('Logout functionality not implemented');
   };
 
   const profileSections = React.useMemo<ProfileSection[]>(
@@ -297,6 +308,16 @@ const Profile = React.memo(() => {
             <JobSkillsForm onCloseModal={() => setJobSkills(false)} />
           </PrimaryModal>
         )}
+        <SecondaryModal
+          visible={logoutModalVisible}
+          onClose={() => setLogoutModalVisible(false)}
+          onCancel={() => setLogoutModalVisible(false)}
+          onConfirm={performLogout}
+          title="Logout Confirmation"
+          message="Are you sure you want to logout?"
+          confirmText="Logout"
+          cancelText="Cancel"
+        />
       </View>
 
       <FlatList

@@ -13,6 +13,8 @@ import { Image } from 'expo-image';
 import { FontAwesome6 } from '@expo/vector-icons';
 import JobDetailsModal from '~/components/Shared/JobPostDetails';
 import SearchBar from '~/components/Shared/Search'; // Import the SearchBar component
+import { useMatchJobs } from '~/hooks/query/useJobData';
+
 const ITEM_HEIGHT = 250; // Pre-calculated item height
 interface JobItem extends JobPost {
   company_logo?: string;
@@ -35,7 +37,12 @@ const formatLocation = (location: string | object) => {
     return typeof location === 'string' ? location : 'Location available upon application';
   }
 };
-const MatchedJobsList = memo(() => {
+
+interface MatchedJobsListProps {
+  selectedIndustry?: string;
+}
+
+const MatchedJobsList = memo(({ selectedIndustry }: MatchedJobsListProps) => {
   const { data: userData } = useUserData();
   const userId = userData?.id ?? '';
   const theme = useTheme();
@@ -48,12 +55,8 @@ const MatchedJobsList = memo(() => {
     setModalVisible(true);
   }, []);
 
-  const { data, isLoading, isError, refetch } = useQuery<JobPost[]>({
-    queryKey: ['matchedJobs', userId],
-    queryFn: () => (userId ? getMatchedJobs(userId) : []),
-    enabled: !!userId,
-    staleTime: 1000 * 60 * 5,
-  });
+  // Use the hook with the selectedIndustry
+  const { data, isLoading, isError, refetch } = useMatchJobs(selectedIndustry);
 
   // Filter jobs based on the search query
   const filteredJobs = useMemo(() => {
@@ -158,6 +161,13 @@ const MatchedJobsList = memo(() => {
         />
       </View>
 
+      {/* Industry Indicator */}
+      {selectedIndustry && (
+        <View className="mx-4 mb-2">
+          <Text className="text-primary font-medium">Showing jobs in: {selectedIndustry}</Text>
+        </View>
+      )}
+
       {/* Jobs List */}
       <FlatList
         data={filteredJobs} // Use filtered jobs instead of raw data
@@ -172,9 +182,13 @@ const MatchedJobsList = memo(() => {
         ListEmptyComponent={
           <View className="items-center p-4">
             <Text className="text-gray-500">
-              {searchQuery ? 'No matching jobs found' : 'No jobs available'}
+              {searchQuery
+                ? 'No matching jobs found'
+                : selectedIndustry
+                  ? `No jobs found in ${selectedIndustry}`
+                  : 'No jobs available'}
             </Text>
-            <Button title="Try Again" onPress={() => refetch()} className="mt-4" />
+            <Button title="Refresh" onPress={() => refetch()} className="mt-4" />
           </View>
         }
         initialNumToRender={6}

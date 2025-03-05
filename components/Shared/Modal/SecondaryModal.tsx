@@ -7,12 +7,29 @@ import { useSharedValue, withSpring } from 'react-native-reanimated';
 interface SecondaryModalProps {
   visible: boolean;
   onClose: () => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   avoidKeyboard?: boolean;
+  onCancel?: () => void;
+  onConfirm?: () => void;
+  title?: string;
+  message?: string;
+  confirmText?: string;
+  cancelText?: string;
 }
 
 const SecondaryModal: React.FC<SecondaryModalProps> = memo(
-  ({ visible, onClose, avoidKeyboard = true, children }) => {
+  ({
+    visible,
+    onClose,
+    avoidKeyboard = true,
+    children,
+    onCancel,
+    onConfirm,
+    title,
+    message,
+    confirmText = 'Confirm',
+    cancelText = 'Cancel',
+  }) => {
     const scale = useSharedValue(0.8);
     const opacity = useSharedValue(0);
 
@@ -25,6 +42,8 @@ const SecondaryModal: React.FC<SecondaryModalProps> = memo(
       scale.value = withSpring(0.8, { damping: 10 });
       opacity.value = withSpring(0, { damping: 10 });
     };
+
+    const isConfirmationModal = title && message && onConfirm;
 
     return (
       <Modal
@@ -48,11 +67,31 @@ const SecondaryModal: React.FC<SecondaryModalProps> = memo(
               activeOpacity={0.7}>
               <Ionicons name="close" size={24} color="black" />
             </TouchableOpacity>
-            <View className="pt-2">
-              {React.isValidElement(children)
-                ? React.cloneElement(children as React.ReactElement, { onClose })
-                : children}
-            </View>
+
+            {isConfirmationModal ? (
+              <View className="flex-1 items-center justify-center">
+                <Text className="mb-4 text-center text-xl font-bold">{title}</Text>
+                <Text className="mb-8 text-center text-base">{message}</Text>
+
+                <View className="w-full flex-row justify-center space-x-4">
+                  <TouchableOpacity
+                    onPress={onCancel || onClose}
+                    className="rounded-lg bg-gray-300 px-5 py-3">
+                    <Text className="text-center font-semibold">{cancelText}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity onPress={onConfirm} className="bg-primary rounded-lg px-5 py-3">
+                    <Text className="text-center font-semibold">{confirmText}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <View className="pt-2">
+                {React.isValidElement(children)
+                  ? React.cloneElement(children as React.ReactElement, { onClose })
+                  : children}
+              </View>
+            )}
           </View>
         </View>
       </Modal>

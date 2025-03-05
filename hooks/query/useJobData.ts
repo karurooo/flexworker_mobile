@@ -31,10 +31,11 @@ const useJobsData = () => {
 
 const useMatchJobs = (industry?: string) => {
   const { data: user } = useUserData();
+
   return useQuery<JobPostWithRelations[]>({
     queryKey: ['matchedJobs', user?.id, industry],
-    queryFn: () => getMatchedJobs(user?.id),
-    enabled: !!user?.id && !!industry,
+    queryFn: () => getMatchedJobs(user?.id, industry),
+    enabled: !!user?.id,
     staleTime: 300_000,
     select: (data) => data.filter((item) => item.min_salary > 0),
   });
