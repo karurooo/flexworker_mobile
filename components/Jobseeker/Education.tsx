@@ -26,7 +26,7 @@ type FormFieldItem =
       options: Array<{ label: string; value: string }>;
     };
 
-const EducationalBackgroundForm = React.memo(() => {
+const EducationalBackgroundForm = React.memo(({ onCloseModal }: { onCloseModal: () => void }) => {
   const formMethods = useForm<EducationalBackgroundFormData>({
     resolver: zodResolver(EducationalBackgroundSchema),
     defaultValues: {
