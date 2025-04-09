@@ -5,6 +5,7 @@ export const PersonalInformationSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   middleName: z.string().optional(),
   lastName: z.string().min(1, 'Last name is required'),
+  disability: z.string().min(1, 'disability is required'),
   sex: z.string().min(1, 'Sex is required'),
   religion: z.string().min(1, 'Religion is required'),
   contactNumber: z.string().min(11, 'Invalid contact number'),
@@ -63,6 +64,18 @@ export const JobSkillsSchema = z.object({
   jobIndustry: z.string(),
   jobSpecialization: z.string(),
   customSpecialization: z.string().optional(),
+  certificates: z
+    .string()
+    .refine(
+      (value) =>
+        value.startsWith(
+          'https://jpbsrasldjdqavbzozyp.supabase.co/storage/v1/object/public/user-images/'
+        ),
+      {
+        message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
+      }
+    )
+    .optional(),
 });
 
 // Base Job Seeker Present Address Schema

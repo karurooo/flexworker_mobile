@@ -111,6 +111,7 @@ export interface JobSeekerProfile {
     civil_service: YesNoCategory;
     tin: string;
     tin_selfie: string;
+    disability: string;
   };
   presentAddress: {
     region: string;

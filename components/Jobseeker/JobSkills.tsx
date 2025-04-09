@@ -13,6 +13,7 @@ import { useUserData } from '~/hooks/query/useUserData';
 import { useQueryClient } from '@tanstack/react-query';
 import { JOB_SKILLS_QUERY_KEY } from '~/constants/auth/queryKeys';
 import { useJobSeekerSkillsData } from '~/hooks/query/useJobSeekerData';
+import PickImage from '../Shared/PickImage';
 
 type FormFieldItem =
   | {
@@ -173,32 +174,41 @@ const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
   return (
     <FormProvider {...formMethods}>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
-        <Text className="text-bold text-2xl font-bold">Job Skills</Text>
+        <Text className="text-bold text-2xl font-bold">Job Skills and Certificate</Text>
         <Text className="text-md mb-4">Add your job skills</Text>
 
-        <FlatList
-          data={formFields}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
-          ListFooterComponent={ListFooter}
-          initialNumToRender={10}
-          maxToRenderPerBatch={15}
-          windowSize={21}
-          removeClippedSubviews={false}
-          getItemLayout={(data, index) => ({
-            length: 100,
-            offset: 100 * index,
-            index,
-          })}
-          contentContainerStyle={{
-            paddingBottom: Platform.select({
-              ios: 350,
-              android: 300,
-            }),
-          }}
-          keyboardDismissMode="interactive"
-          keyboardShouldPersistTaps="handled"
-        />
+
+        {/* Upload Certificates */}
+          <Text className="my-1 text-md">Upload Certificate</Text>
+          <PickImage onImageSelected={(url) => formMethods.setValue('certificates', url)} />
+        
+        <View className='mt-2'>
+          <FlatList
+            data={formFields}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            ListFooterComponent={ListFooter}
+            initialNumToRender={10}
+            maxToRenderPerBatch={15}
+            windowSize={21}
+            removeClippedSubviews={false}
+            getItemLayout={(data, index) => ({
+              length: 100,
+              offset: 100 * index,
+              index,
+            })}
+            contentContainerStyle={{
+              paddingBottom: Platform.select({
+                ios: 350,
+                android: 300,
+              }),
+            }}
+            keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
+          />
+        </View>
+        
+                      
       </KeyboardAvoidingView>
     </FormProvider>
   );

@@ -1,4 +1,13 @@
 // Predefined options for dropdowns
+const DISABILITY_OPTIONS = [
+  { label: 'None', value: 'none' },
+  { label: 'Visual', value: 'visual' },
+  { label: 'Hearing', value: 'hearing' },
+  { label: 'Speech', value: 'speech' },
+  { label: 'Physical', value: 'physical' },
+  { label: 'Psychosocial', value: 'psychosocial' },
+];
+
 const GENDER_OPTIONS = [
   { label: 'Male', value: 'male' },
   { label: 'Female', value: 'female' },
@@ -23,4 +32,4 @@ const YesNoOptions = [
   { label: 'No', value: 'no' },
 ];
 
-export { YesNoOptions, CIVIL_STATUS_OPTIONS, RELIGION_OPTIONS, GENDER_OPTIONS };
+export { YesNoOptions, CIVIL_STATUS_OPTIONS, RELIGION_OPTIONS, GENDER_OPTIONS, DISABILITY_OPTIONS };

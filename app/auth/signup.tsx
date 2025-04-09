@@ -13,9 +13,11 @@ import { signupSchema, SignupFormData } from '~/schema/authSchema';
 import PressableText from '~/components/Shared/Buttons/PressableText';
 import RoleSelector from '~/components/Shared/Forms/RoleSelector';
 import Alert from '~/components/Shared/Alerts';
+import TermsModal from '~/components/Shared/TermsModal';
 
 export default function Signup() {
   const [errorMessage, setErrorMessage] = useState('');
+  const [isTermsModalVisible, setIsTermsModalVisible] = useState(false);
   const closeBottomSheet = useCallback(() => {
     setErrorMessage('');
   }, []);
@@ -136,7 +138,12 @@ export default function Signup() {
             render={({ field: { onChange, value } }) => (
               <MemoizedCheckbox
                 isChecked={value}
-                onToggle={() => onChange(!value)}
+                onToggle={() => {
+                  onChange(!value);
+                  if (!value) {
+                    setIsTermsModalVisible(true); // Show modal when checkbox is checked
+                  }
+                }}
                 label="By signing up, you agree to our Terms of Service and Privacy Policy"
                 error={errors.agree_to_terms?.message}
               />
@@ -153,6 +160,12 @@ export default function Signup() {
             <PressableText href="/auth/signin">Sign In</PressableText>
           </View>
         </View>
+      </View>
+      <View>
+        <TermsModal
+          visible={isTermsModalVisible}
+          onClose={() => setIsTermsModalVisible(false)} // Close modal
+        />
       </View>
     </Container>
   );

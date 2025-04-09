@@ -61,5 +61,3 @@ const useJobSeekerSkillsData = () => {
 //   });
 // };
 export { useJobseekerData, useJobSeekerSkillsData };
-
-export const JOB_SKILLS_QUERY_KEY = ['jobSeekerSkills'];

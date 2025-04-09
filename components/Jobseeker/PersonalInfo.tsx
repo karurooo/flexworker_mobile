@@ -10,6 +10,7 @@ import React, { useMemo, useState } from 'react';
 import PickImage from '~/components/Shared/PickImage';
 import CameraCapture from '~/components/Shared/CameraCapture';
 import {
+  DISABILITY_OPTIONS,
   GENDER_OPTIONS,
   RELIGION_OPTIONS,
   CIVIL_STATUS_OPTIONS,
@@ -53,6 +54,7 @@ const PersonalInformationForm = React.memo(({ onCloseModal }: JobSeekerProps) =>
       civilStatus: '',
       civilService: '',
       tin: '',
+      disability: '',
     },
   });
 
@@ -113,6 +115,12 @@ const PersonalInformationForm = React.memo(({ onCloseModal }: JobSeekerProps) =>
         name: 'contactNumber',
         label: 'Contact Number',
         keyboardType: 'phone-pad',
+      },
+      {
+        type: 'dropdown',
+        name: 'disability',
+        label: 'Disabilities',
+        options: DISABILITY_OPTIONS,
       },
       {
         type: 'dropdown',
@@ -217,6 +225,12 @@ const PersonalInformationForm = React.memo(({ onCloseModal }: JobSeekerProps) =>
               <Text className="mb-4 text-sm text-gray-600">
                 Note: Upload TIN document and take a selfie holding your TIN ID
               </Text>
+              
+              {/* Upload Certificates */}
+              {/* <View className="flex-1 mb-2">
+                <Text className="my-1 text-sm">Upload Certificates</Text>
+                <PickImage onImageSelected={(url) => formMethods.setValue('certificates', url)} />
+              </View> */}
 
               <Button
                 title={isPending ? 'Submitting...' : 'Submit'}
