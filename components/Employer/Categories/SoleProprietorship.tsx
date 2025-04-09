@@ -36,15 +36,12 @@ const SoleProprietorship = memo(({ onCloseModal }: { onCloseModal: () => void })
       },
       {
         document: { type: 'document', name: 'dtiCert', label: 'DTI Certificate' },
-        selfie: { type: 'selfie', name: 'dtiCertSelfie', label: 'Selfie with DTI' },
       },
       {
         document: { type: 'document', name: 'businessPermit', label: 'Business Permit' },
-        selfie: { type: 'selfie', name: 'businessPermitSelfie', label: 'Permit Selfie' },
       },
       {
         document: { type: 'document', name: 'birCert', label: 'BIR Certificate' },
-        selfie: { type: 'selfie', name: 'birCertSelfie', label: 'BIR Selfie' },
       },
     ],
     []
@@ -126,12 +123,11 @@ const SoleProprietorship = memo(({ onCloseModal }: { onCloseModal: () => void })
             .map((f) => (f as any).name)
             .join('-')
         }
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: 34 }}
         showsVerticalScrollIndicator={false}
         ListFooterComponent={
           <>
             <View className="pt-4">
-              {' '}
               {/* Add top padding */}
               {errorMessage && (
                 <Alert
@@ -151,7 +147,7 @@ const SoleProprietorship = memo(({ onCloseModal }: { onCloseModal: () => void })
                   onClose={() => setSuccessMessage(null)}
                 />
               )}
-              <Text className="mb-4  text-sm text-gray-600">
+              <Text className="mb-2  text-sm text-gray-600">
                 Note: Use the Image button to upload a file and the Camera button to take a selfie
                 with the certificate.
               </Text>

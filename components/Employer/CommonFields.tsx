@@ -26,7 +26,6 @@ type Props = {
   onSuccess: (category: EmployerCategory) => void;
 };
 
-// Update the FormFieldItem type
 type FormFieldItem = {
   type: 'text' | 'dropdown';
   name: keyof Omit<Employer, 'id' | 'created_at' | 'status' | 'user_id'>;
@@ -70,7 +69,6 @@ const CommonFields = ({ onSuccess }: Props) => {
   const { data: userData } = useUserData();
 
   const userId = userData?.id;
-  // Update the formFields array
   const formFields = useMemo<FormFieldItem[]>(
     () => [
       {
@@ -147,15 +145,17 @@ const CommonFields = ({ onSuccess }: Props) => {
     [control, errors]
   );
   const handleAddressSubmit = (data: AddressFormData) => {
-    setAddress(data); // Update the address state
-    setValue('address', data.address); // Update the form values
-    setShowAddressForm(false); // Close the modal
+    setAddress(data);
+    setValue('address', data.address);
+    setShowAddressForm(false);
   };
 
   const [selectedCategory, setSelectedCategory] = useState<EmployerCategory | null>(null);
   const [showDocumentModal, setShowDocumentModal] = useState(false);
-  const { data: employer } = useEmployerData();
-  console.log('employer data', employer);
+  const { data: employerData, isLoading: isLoadingEmployer } = useEmployerData({
+    enabled: true,
+    refetchInterval: 3000,
+  });
 
   const handleApplicationSubmit = useCallback(
     (formData: EmployerFormData) => {
@@ -164,18 +164,18 @@ const CommonFields = ({ onSuccess }: Props) => {
         return;
       }
 
-      const payload: Omit<Employer, 'id' | 'created_at'> = {
+      const payload = {
         user_id: userId,
         ...formData,
         category: formData.category as EmployerCategory,
         address: formData.address,
+        status: 'PENDING',
       };
 
       mutate(payload, {
         onSuccess: () => {
           setSelectedCategory(formData.category as EmployerCategory);
           setShowDocumentModal(true);
-          console.log('Selected Category', formData.category);
           onSuccess(formData.category as EmployerCategory);
         },
         onError: (error) => {
@@ -187,6 +187,28 @@ const CommonFields = ({ onSuccess }: Props) => {
     [userId, mutate, onSuccess]
   );
 
+  const renderStatus = () => {
+    if (!employerData) return null;
+
+    return (
+      <View className="mb-4 rounded-lg bg-gray-50 p-3">
+        <Text className="text-lg font-semibold">
+          Application Status:
+          <Text
+            className={`${
+              employerData.status === 'APPROVED'
+                ? 'text-green-600'
+                : employerData.status === 'PENDING'
+                  ? 'text-yellow-600'
+                  : 'text-red-600'
+            }`}>
+            {employerData.status}
+          </Text>
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <View className="h-full w-full rounded-2xl p-3">
       <FlatList
@@ -196,8 +218,9 @@ const CommonFields = ({ onSuccess }: Props) => {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <>
-            <Text className="text-bold  text-2xl font-bold">Employer Information</Text>
-            <Text className=" text-md  mb-4">Please fill out the following information</Text>
+            <Text className="text-bold text-2xl font-bold">Employer Information</Text>
+            <Text className="text-md mb-4">Please fill out the following information</Text>
+            {renderStatus()}
           </>
         }
         ListFooterComponent={
@@ -208,7 +231,7 @@ const CommonFields = ({ onSuccess }: Props) => {
                 <SecondaryButtons title="Add Address" onPress={() => setShowAddressForm(true)} />
               ) : (
                 <TouchableOpacity
-                  className="border-background rounded-lg border p-2"
+                  className=" rounded-lg  p-2"
                   onPress={() => setShowAddressForm(true)}>
                   <Text className="gap-2">
                     {`${address?.address.street ?? ''}, ${address?.address.barangay ?? ''}, ${address?.address.city ?? ''}, ${address?.address.province ?? ''}, ${address?.address.region ?? ''}, ${address?.address.zipCode ?? ''}`}
@@ -217,7 +240,6 @@ const CommonFields = ({ onSuccess }: Props) => {
               )}
             </View>
             <View className="mb-2 w-full flex-row items-center justify-center gap-2 ">
-              {/* TIN Image Section */}
               <View className=" flex-1">
                 <Text className=" my-1 text-sm">TIN Image Upload</Text>
                 <PickImage
@@ -226,7 +248,6 @@ const CommonFields = ({ onSuccess }: Props) => {
                 />
               </View>
 
-              {/* Selfie with TIN Section */}
               <View className=" flex-1">
                 <Text className=" my-1 text-sm">Selfie with TIN ID</Text>
                 <CameraCapture
@@ -247,7 +268,7 @@ const CommonFields = ({ onSuccess }: Props) => {
           </>
         }
         getItemLayout={(data, index) => ({
-          length: 80, // Average item height
+          length: 80,
           offset: 80 * index,
           index,
         })}

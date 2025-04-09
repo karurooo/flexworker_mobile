@@ -22,7 +22,7 @@ const SecondaryButtons = forwardRef<View, ButtonProps>(
       <TouchableOpacity
         ref={ref}
         disabled={disabled}
-        className={`border-navy} my-2 h-10 w-full items-center justify-center rounded-xl border`}
+        className={`my-2 h-10 w-full items-center justify-center rounded-xl bg-white`}
         {...props}>
         <Text className="text-center text-sm font-semibold">{title}</Text>
       </TouchableOpacity>

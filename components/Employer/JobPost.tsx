@@ -244,7 +244,7 @@ const JobPost = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
               <Text>Job Location</Text>
               <TouchableOpacity
                 onPress={() => setAddressModalVisible(true)}
-                className="my-2 rounded-lg border border-gray-400 px-4 py-3">
+                className="my-2 rounded-lg bg-white px-4 py-3">
                 <Text className="text-gray-700">{addressText}</Text>
               </TouchableOpacity>
               {formMethods.formState.errors.location && (

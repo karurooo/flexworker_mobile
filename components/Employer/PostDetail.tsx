@@ -180,7 +180,7 @@ const PostDetail = memo(({ visible, onClose, job, isEmployerView }: PostDetailPr
           <Text variant="labelMedium" className="text-gray-500">
             Location
           </Text>
-          <Text variant="bodyMedium">{formatLocation(job.location)}</Text>
+          <Text variant="bodyMedium">{formatLocation(job.location || '')}</Text>
         </View>
 
         {/* Description */}

@@ -1,28 +1,28 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { FormProvider, useForm, useWatch } from "react-hook-form";
-import { useJobSeekerMutations } from "~/mutations/query/jobseeker/useJobseekerMutation";
-import { JobSkillsFormData, JobSkillsSchema } from "~/schema/jobeekerSchema";
-import { View, KeyboardAvoidingView, FlatList, Text, Platform } from "react-native";
-import FormField from "~/components/Shared/Forms/FormFields";
-import DropdownFormField from "~/components/Shared/Forms/DropdownForms";
-import Button from "~/components/Shared/Buttons/Button";
-import React, { useMemo, useCallback } from "react";
-import { jobIndustrySpecializationMap } from "~/constants/jobSpecialization";
-import { JobSeekerProps } from "~/types/jobseeker";
-import { useUserData } from "~/hooks/query/useUserData";
-import { useQueryClient } from "@tanstack/react-query";
-import { JOB_SKILLS_QUERY_KEY } from "~/constants/auth/queryKeys";
-import { useJobSeekerSkillsData } from "~/hooks/query/useJobSeekerData";
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
+import { useJobSeekerMutations } from '~/mutations/query/jobseeker/useJobseekerMutation';
+import { JobSkillsFormData, JobSkillsSchema } from '~/schema/jobeekerSchema';
+import { View, KeyboardAvoidingView, FlatList, Text, Platform } from 'react-native';
+import FormField from '~/components/Shared/Forms/FormFields';
+import DropdownFormField from '~/components/Shared/Forms/DropdownForms';
+import Button from '~/components/Shared/Buttons/Button';
+import React, { useMemo, useCallback } from 'react';
+import { jobIndustrySpecializationMap } from '~/constants/jobSpecialization';
+import { JobSeekerProps } from '~/types/jobseeker';
+import { useUserData } from '~/hooks/query/useUserData';
+import { useQueryClient } from '@tanstack/react-query';
+import { JOB_SKILLS_QUERY_KEY } from '~/constants/auth/queryKeys';
+import { useJobSeekerSkillsData } from '~/hooks/query/useJobSeekerData';
 
 type FormFieldItem =
   | {
-      type?: "text";
+      type?: 'text';
       name: keyof JobSkillsFormData;
       label: string;
-      keyboardType?: "default" | "numeric";
+      keyboardType?: 'default' | 'numeric';
     }
   | {
-      type: "dropdown";
+      type: 'dropdown';
       name: keyof JobSkillsFormData;
       label: string;
       options: Array<{ label: string; value: string }>;
@@ -37,9 +37,9 @@ const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
   const formMethods = useForm<JobSkillsFormData>({
     resolver: zodResolver(JobSkillsSchema),
     defaultValues: {
-      jobIndustry: "",
-      jobSpecialization: "",
-      customSpecialization: "", // New field for custom input
+      jobIndustry: '',
+      jobSpecialization: '',
+      customSpecialization: '', // New field for custom input
     },
   });
 
@@ -51,12 +51,12 @@ const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
 
   const selectedJobIndustry = useWatch({
     control,
-    name: "jobIndustry",
+    name: 'jobIndustry',
   });
 
   const selectedJobSpecialization = useWatch({
     control,
-    name: "jobSpecialization",
+    name: 'jobSpecialization',
   });
 
   const { jobSkillsMutation } = useJobSeekerMutations();
@@ -71,19 +71,19 @@ const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
 
     // Use customSpecialization if "Other" is selected, otherwise use jobSpecialization
     const specialization =
-      jobSpecialization === "Other" ? customSpecialization : jobSpecialization;
+      (jobSpecialization === 'Other' ? customSpecialization : jobSpecialization) || 'General';
 
     mutate(
       { ...data, jobSpecialization: specialization },
       {
         onSuccess: async () => {
           await queryClient.invalidateQueries({ queryKey: [JOB_SKILLS_QUERY_KEY] });
-          await queryClient.invalidateQueries({ queryKey: ["matchedJobs", userId] });
+          await queryClient.invalidateQueries({ queryKey: ['matchedJobs', userId] });
           await refetchJobSeekerSkills();
           onCloseModal();
         },
         onError: (error) => {
-          console.error("Job Skills Error:", error);
+          console.error('Job Skills Error:', error);
         },
       }
     );
@@ -100,25 +100,25 @@ const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
   const formFields = useMemo<FormFieldItem[]>(
     () => [
       {
-        type: "dropdown",
-        name: "jobIndustry",
-        label: "Job Industry",
+        type: 'dropdown',
+        name: 'jobIndustry',
+        label: 'Job Industry',
         options: JOB_INDUSTRY_OPTIONS,
       },
       {
-        type: "dropdown",
-        name: "jobSpecialization",
-        label: "Job Specialization",
+        type: 'dropdown',
+        name: 'jobSpecialization',
+        label: 'Job Specialization',
         options: JOB_SPECIALIZATION_OPTIONS,
       },
       // Conditionally render a text input field if "Other" is selected
-      ...(selectedJobSpecialization === "Other"
+      ...(selectedJobSpecialization === 'Other'
         ? [
             {
-              type: "text",
-              name: "customSpecialization",
-              label: "Please Specify",
-              keyboardType: "default",
+              type: 'text' as const,
+              name: 'customSpecialization' as const,
+              label: 'Custom Specialization',
+              keyboardType: 'default' as const,
             },
           ]
         : []),
@@ -135,7 +135,7 @@ const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
   const ListFooter = useMemo(
     () => (
       <Button
-        title={isPending ? "Saving..." : "Add Job Skill"}
+        title={isPending ? 'Saving...' : 'Add Job Skill'}
         onPress={handleSubmit(onSubmit)}
         disabled={isPending}
       />
@@ -145,7 +145,7 @@ const JobSkillsForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
 
   const renderItem = useCallback(
     ({ item }: { item: FormFieldItem }) => {
-      if (item.type === "dropdown") {
+      if (item.type === 'dropdown') {
         return (
           <DropdownFormField
             control={control}

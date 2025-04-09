@@ -6,8 +6,6 @@ export const useSignupMutation = () => {
   return useMutation({
     mutationFn: signup,
     onSuccess: (data, variables) => {
-      console.log('User signed up successfully:', data);
-
       // Navigate to the Verification screen
       router.push({
         pathname: '/auth/verification',
@@ -20,13 +18,22 @@ export const useSignupMutation = () => {
       });
     },
     onError: (error: any) => {
-      console.log('Signup failed:', error);
+      let errorMessage = 'We encountered an issue signing you up. Please try again.';
 
-      let errorMessage = 'An unexpected error occurred during signup.';
-      if (error.message.includes('already registered')) {
-        errorMessage = 'This email is already registered. Please log in or reset your password.';
-      } else if (error.message.includes('network')) {
-        errorMessage = 'A network error occurred. Please check your internet connection.';
+      const errorMessageLower = error.message.toLowerCase();
+
+      if (errorMessageLower.includes('already registered')) {
+        errorMessage = 'This email is already registered. Please sign in or use a different email.';
+      } else if (errorMessageLower.includes('network')) {
+        errorMessage = 'Connection issue detected. Please check your internet and try again.';
+      } else if (errorMessageLower.includes('validation')) {
+        errorMessage = 'Please check all fields and ensure they meet the requirements.';
+      } else if (errorMessageLower.includes('email')) {
+        errorMessage = 'Please enter a valid email address (e.g., name@example.com).';
+      } else if (errorMessageLower.includes('password')) {
+        errorMessage = 'Password must be at least 8 characters with a mix of letters and numbers.';
+      } else if (errorMessageLower.includes('timeout')) {
+        errorMessage = 'Request timed out. Please check your connection and try again.';
       }
 
       throw new Error(errorMessage);

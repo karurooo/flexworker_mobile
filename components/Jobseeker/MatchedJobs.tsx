@@ -13,6 +13,9 @@ import { Image } from 'expo-image';
 import { FontAwesome6 } from '@expo/vector-icons';
 import JobDetailsModal from '~/components/Shared/JobPostDetails';
 import SearchBar from '~/components/Shared/Search'; // Import the SearchBar component
+import { useMatchJobs } from '~/hooks/query/useJobData';
+import { router } from 'expo-router';
+import SecondaryButton from '../Shared/Buttons/SecondaryButton';
 const ITEM_HEIGHT = 250; // Pre-calculated item height
 interface JobItem extends JobPost {
   company_logo?: string;
@@ -35,7 +38,12 @@ const formatLocation = (location: string | object) => {
     return typeof location === 'string' ? location : 'Location available upon application';
   }
 };
-const MatchedJobsList = memo(() => {
+
+interface MatchedJobsListProps {
+  selectedIndustry?: string;
+}
+
+const MatchedJobsList = memo(({ selectedIndustry }: MatchedJobsListProps) => {
   const { data: userData } = useUserData();
   const userId = userData?.id ?? '';
   const theme = useTheme();
@@ -48,19 +56,13 @@ const MatchedJobsList = memo(() => {
     setModalVisible(true);
   }, []);
 
-  const { data, isLoading, isError, refetch } = useQuery<JobPost[]>({
-    queryKey: ['matchedJobs', userId],
-    queryFn: () => (userId ? getMatchedJobs(userId) : []),
-    enabled: !!userId,
-    staleTime: 1000 * 60 * 5,
-  });
+  // Use the hook with the selectedIndustry
+  const { data, isLoading, isError, refetch } = useMatchJobs(selectedIndustry);
 
   // Filter jobs based on the search query
   const filteredJobs = useMemo(() => {
     if (!data) return [];
-    return data.filter((job) =>
-      job.job_title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return data.filter((job) => job.job_title.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [data, searchQuery]);
 
   const renderItem = useCallback(
@@ -94,7 +96,7 @@ const MatchedJobsList = memo(() => {
                 </View>
               </View>
               <Text style={theme.fonts.bodySmall} className="text-gray-500">
-                {formatLocation(item.location)}
+                {formatLocation(item.location || '')}
               </Text>
               {/* Content */}
               <Text style={theme.fonts.bodyMedium} className="leading-5  text-gray-800">
@@ -160,6 +162,13 @@ const MatchedJobsList = memo(() => {
         />
       </View>
 
+      {/* Industry Indicator */}
+      {selectedIndustry && (
+        <View className="mx-4 mb-2">
+          <Text className="text-primary font-medium">Showing jobs in: {selectedIndustry}</Text>
+        </View>
+      )}
+
       {/* Jobs List */}
       <FlatList
         data={filteredJobs} // Use filtered jobs instead of raw data
@@ -172,11 +181,32 @@ const MatchedJobsList = memo(() => {
           index,
         })}
         ListEmptyComponent={
-          <View className="items-center p-4">
-            <Text className="text-gray-500">
-              {searchQuery ? 'No matching jobs found' : 'No jobs available'}
-            </Text>
-            <Button title="Try Again" onPress={() => refetch()} className="mt-4" />
+          <View className="items-center rounded-2xl border border-gray-300 p-4">
+            {/* <Text className="text-center text-gray-300">
+              {searchQuery
+                ? 'No matching jobs found'
+                : selectedIndustry
+                  ? `No jobs found in ${selectedIndustry}`
+                  : 'No jobs available'}
+            </Text> */}
+            {searchQuery ? (
+              <Text className="text-center text-gray-300">Please try a different search query</Text>
+            ) : selectedIndustry ? (
+              <Text className="text-center text-gray-300">No jobs found in {selectedIndustry}</Text>
+            ) : (
+              <View className=" w-full gap-2">
+                <Text className="text-md text-center text-gray-300">No Job Postings Found</Text>
+                <Text className="text-md text-center text-gray-300">
+                  Please setup your job industry and skills first
+                </Text>
+                <SecondaryButton
+                  title="Go to Profile"
+                  onPress={() => router.push('/jobseeker/(tabs)/profile')}
+                />
+              </View>
+            )}
+
+            <Button title="Refresh" onPress={() => refetch()} />
           </View>
         }
         initialNumToRender={6}

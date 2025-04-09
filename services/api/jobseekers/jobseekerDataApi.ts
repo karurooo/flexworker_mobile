@@ -271,7 +271,7 @@ async function getJobSeekerSkillsData(userId: string) {
     const { data, error } = await supabase
       .from('job_seeker_skills')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', userId);
 
     if (error) throw error;
     console.log('Jobseeker Skills:', data);
@@ -284,10 +284,7 @@ async function getJobSeekerSkillsData(userId: string) {
 
 async function deleteJobSeekerSkillsData(id: string) {
   try {
-    const { data, error } = await supabase
-      .from('job_seeker_skills')
-      .delete()
-      .eq('id', id);
+    const { data, error } = await supabase.from('job_seeker_skills').delete().eq('id', id);
 
     if (error) throw error;
     console.log('Jobseeker Skills:', data);

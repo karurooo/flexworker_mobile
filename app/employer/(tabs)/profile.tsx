@@ -4,27 +4,29 @@ import { useUserData } from '~/hooks/query/useUserData';
 import { useUserStore } from '~/store/users';
 import ProfileHeader from '~/components/Employer/ProfileHeader';
 import Stats from '~/components/Employer/ProfileStats';
-import EmployerFields from '~/components/Employer/CommonFields';
 import { useState } from 'react';
 import PrimaryModal from '~/components/Shared/Modal/PrimaryModal';
 import ExtendedFab from '~/components/Shared/ExtendedFab';
 import JobPost from '~/components/Employer/JobPost';
 import PostedJobsList from '~/components/Employer/PostedJobs';
 import { usePostedJobs } from '~/hooks/query/useJobData';
-import { useEmployerData } from '~/hooks/query/useEmployerData';
+import { useEmployerData, useEmployerStatus } from '~/hooks/query/useEmployerData';
 
 export default function Profile() {
-  const { data: user, isLoading, isError } = useUserData();
-  const email = useUserStore.getState().email;
+  const { data: user } = useUserData();
   const [showModal, setShowModal] = useState(false);
   const { data: employer, isLoading: employerLoading, error: employerError } = useEmployerData();
+  const { data: status } = useEmployerStatus();
+
+  const isApproved = status === 'Approved';
+  console.log('This is my employer: ', isApproved);
   const employerId = employer?.id;
-  const { data: posts } = usePostedJobs(employerId!);
+  const { data: posts } = usePostedJobs(employerId ?? '');
 
   if (employerLoading) {
     return (
       <Container>
-        <Text>Loading employer profile...</Text>
+        <Text className="text-center text-2xl font-bold">Loading employer profile...</Text>
       </Container>
     );
   }
@@ -49,7 +51,12 @@ export default function Profile() {
         <Stats />
         <PostedJobsList />
 
-        <ExtendedFab onPress={() => setShowModal(true)} iconName={'add'} />
+        <ExtendedFab
+          onPress={() => isApproved && setShowModal(true)}
+          iconName={'add'}
+          disabled={!isApproved}
+          disabledHint="Complete verification to post jobs"
+        />
         {showModal && (
           <PrimaryModal
             visible={showModal}

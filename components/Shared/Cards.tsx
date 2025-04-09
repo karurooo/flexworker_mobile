@@ -13,15 +13,18 @@ const LINE_HEIGHT = 10;
 const MAX_HEIGHT = MAX_LINES * LINE_HEIGHT;
 
 interface CardsProps {
+  children?: React.ReactNode;
+  className?: string;
+  style?: import('react-native').ViewStyle;
   title: string;
   content: string;
-  date: Date;
+  date?: Date;
   imageUrl?: string;
   onPress?: () => void;
 }
 
 const Cards = React.memo(
-  ({ title, content, date, imageUrl, onPress }: CardsProps) => {
+  ({ title, content, date, imageUrl, onPress, children, className, style }: CardsProps) => {
     const theme = useTheme();
     const [expanded, setExpanded] = React.useState(false);
     const [imageLoadError, setImageLoadError] = React.useState(false);
@@ -43,14 +46,14 @@ const Cards = React.memo(
 
     const handlePress = React.useCallback(() => {
       setExpanded((prev) => !prev);
-      onPress?.();
-    }, [onPress]);
+    }, []);
     return (
       <Animated.View
         entering={FadeIn.duration(300)}
         exiting={FadeOut.duration(200)}
         layout={LinearTransition.duration(250)}
-        className="mx-2 my-1">
+        className={className}
+        style={style}>
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={handlePress}
@@ -66,6 +69,7 @@ const Cards = React.memo(
 
             {/* Card Content */}
             <Card.Content className="p-4">
+              {children}
               {/* Title */}
               <View className="">
                 {/* <Text variant="titleMedium" numberOfLines={2} className="font-bold text-gray-900">
@@ -74,13 +78,13 @@ const Cards = React.memo(
 
                 {/* Date and Time */}
                 <Text variant="titleSmall" className="">
-                  {date.toLocaleDateString('en-US', {
+                  {date?.toLocaleDateString('en-US', {
                     month: 'short',
                     day: '2-digit',
                     year: 'numeric',
                   })}{' '}
                   |{' '}
-                  {date.toLocaleTimeString('en-US', {
+                  {date?.toLocaleTimeString('en-US', {
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: true,

@@ -23,15 +23,13 @@ const PrimaryModal: React.FC<PrimaryModalProps> = memo(
         avoidKeyboard={avoidKeyboard}
         hideModalContentWhileAnimating={true}
         backdropTransitionOutTiming={0}>
-        <View className="flex-1 overflow-hidden rounded-lg bg-white p-5">
-          {/* Close Button */}
+        <View className="flex-1 overflow-hidden rounded-lg bg-gray-100 p-5">
           <TouchableOpacity
             style={{ position: 'absolute', top: 10, right: 10, zIndex: 1 }}
             onPress={onClose}>
             <Ionicons name="close" size={20} color="black" />
           </TouchableOpacity>
 
-          {/* Render Children Without ScrollView */}
           <View style={{ flex: 1 }}>
             {React.isValidElement(children)
               ? React.cloneElement(children as React.ReactElement, { onClose })

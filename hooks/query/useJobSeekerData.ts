@@ -3,7 +3,10 @@ import { getEmployerData } from '~/services/api/employers/employerDataApi';
 import { useUserStore } from '~/store/users';
 import { EMPLOYER_DATA_QUERY_KEY, JOB_SEEKER_QUERY_KEY, JOB_SKILLS_QUERY_KEY } from '~/constants/auth/queryKeys';
 import { useUserData } from './useUserData';
-import { getJobseekerData, getJobSeekerSkillsData } from '~/services/api/jobseekers/jobseekerDataApi';
+import {
+  getJobseekerData,
+  getJobSeekerSkillsData,
+} from '~/services/api/jobseekers/jobseekerDataApi';
 
 const useJobseekerData = () => {
   const { data: user } = useUserData();
@@ -42,7 +45,6 @@ const useJobSeekerSkillsData = () => {
   });
 };
 
-
 // const useEmployerStatus = () => {
 //   const { isAuthenticated } = useUserStore();
 //   const { data: employer } = useJobseekerData();
@@ -58,7 +60,6 @@ const useJobSeekerSkillsData = () => {
 //     staleTime: 1000 * 60 * 5,
 //   });
 // };
-export {
-  useJobseekerData,
-  useJobSeekerSkillsData
-};
+export { useJobseekerData, useJobSeekerSkillsData };
+
+export const JOB_SKILLS_QUERY_KEY = ['jobSeekerSkills'];

@@ -49,8 +49,8 @@ export default function Signup() {
 
   // Memoize error handling
   const handleError = useCallback((error: Error) => {
-    if (error.message.includes('sending confirmation email')) {
-      return 'There was an issue sending the confirmation email. Please try again later.';
+    if (error.message.includes('confirmation email')) {
+      return 'We sent a confirmation email, but there was a delay. You can still proceed.';
     }
     return error.message;
   }, []);
@@ -98,9 +98,10 @@ export default function Signup() {
           <MemoizedAlert
             isVisible={!!errorMessage}
             variant="error"
-            title="Signup Error"
+            title="Signup Issue"
             message={errorMessage}
             onClose={handleCloseAlert}
+            className="mb-4"
           />
         )}
         <View className="my-2">

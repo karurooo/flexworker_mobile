@@ -41,20 +41,7 @@ export default function Home() {
         </View>
       </View>
       <View className="mx-4 h-[85%] flex-1">
-        <SecondaryButtons
-          title="View Announcements"
-          onPress={() => {
-            setVisible(true);
-          }}
-        />
-        {visible && (
-          <PrimaryModal visible={visible} onClose={() => setVisible(false)}>
-            <>
-              <Text className=" text-2xl font-bold">Announcements</Text>
-              <Announcements />
-            </>
-          </PrimaryModal>
-        )}
+        <Announcements />
         <AllPostedJobs />
       </View>
     </Container>

@@ -77,8 +77,8 @@ const JobPreferenceForm = React.memo(({ onCloseModal }: JobSeekerProps) => {
     mutate(data, {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: ['matchedJobs'],
-          exact: false,
+          queryKey: ['matchedJobs', userId], // Add userId here
+          exact: true,
         });
         onCloseModal?.();
       },

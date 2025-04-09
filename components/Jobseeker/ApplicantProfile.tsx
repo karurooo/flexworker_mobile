@@ -2,7 +2,12 @@ import { ScrollView, View, Text, FlatList, ActivityIndicator } from 'react-nativ
 import { Card, useTheme } from 'react-native-paper';
 import { Notification } from '~/types/notifications';
 import { memo, useMemo, useCallback, useState, useEffect } from 'react';
-import type { Location } from '~/types/notifications';
+import type {
+  EducationalBackground,
+  JobPreference,
+  Location,
+  PersonalInformation,
+} from '~/types/notifications';
 import Buttons from '../Shared/Buttons/Button';
 import SecondaryButtons from '../Shared/Buttons/SecondaryButton';
 import React from 'react';
@@ -12,12 +17,27 @@ import { useUserData } from '~/hooks/query/useUserData';
 import { useRouter } from 'expo-router';
 import { useEmployerData } from '~/hooks/query/useEmployerData';
 import Alert from '../Shared/Alerts';
+import NextStep from '~/components/Shared/NextStep';
+import SecondaryModal from '../Shared/Modal/SecondaryModal';
 
 interface ApplicantProfileProps {
-  metadata?: NonNullable<Notification['metadata']>['applicantProfile'];
+  metadata?: {
+    id: string;
+    personal_information: PersonalInformation;
+    educational_background: EducationalBackground;
+    job_preference: JobPreference;
+    present_address: Location;
+    cover_letter: string;
+    applicantSkills?: Array<{ industry: string; specialization: string }>;
+  };
   jobPostingId: string;
-  jobTitle: NonNullable<Notification['metadata']>['job_title'];
+  jobTitle?: string;
 }
+
+type ApplicantSkill = {
+  industry: string;
+  specialization: string;
+};
 
 const ApplicantProfile = memo(({ metadata, jobPostingId, jobTitle }: ApplicantProfileProps) => {
   if (!jobPostingId) {
@@ -64,6 +84,11 @@ const ApplicantProfile = memo(({ metadata, jobPostingId, jobTitle }: ApplicantPr
   const [alertType, setAlertType] = useState<'success' | 'error' | 'info'>('info');
   const [alertMessage, setAlertMessage] = useState('');
 
+  // Add state for modal
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [currentAction, setCurrentAction] = useState<'hire' | 'reject'>('hire');
+
   useEffect(() => {
     if (!jobPostingId) {
       console.error('Missing jobPostingId:', metadata);
@@ -89,76 +114,102 @@ const ApplicantProfile = memo(({ metadata, jobPostingId, jobTitle }: ApplicantPr
       day: 'numeric',
     });
 
-  const handleHire = useCallback(async () => {
-    try {
-      setAlertVisible(false);
-
-      if (!employer?.id) {
-        throw new Error('Employer information missing');
-      }
-
-      await NotificationService.sendHireDecision({
-        applicantId: metadata.id,
-        jobId: jobPostingId,
-        decision: 'Approved',
-        employer: employer,
-        jobTitle: jobTitle || '',
-      });
-
-      setAlertType('success');
-      setAlertMessage(`${formattedName} has been hired successfully!`);
-      setAlertVisible(true);
-
-      // Close modal after success
-      setTimeout(() => {
+  const handleHire = useCallback(
+    async (instructions: string) => {
+      try {
         setAlertVisible(false);
-        router.back();
-      }, 2000);
-    } catch (error) {
-      setAlertType('error');
-      setAlertMessage(
-        error instanceof Error
-          ? `Hire processed but notification failed: ${error.message}`
-          : 'Hire completed with partial errors'
-      );
-      setAlertVisible(true);
-    }
-  }, [jobPostingId, metadata, employer, formattedName, router]);
 
-  const handleReject = useCallback(async () => {
-    try {
-      setAlertVisible(false);
+        if (!employer?.id) {
+          throw new Error('Employer information missing');
+        }
 
-      if (!employer?.id) {
-        throw new Error('Employer information missing');
+        await NotificationService.sendHireDecision({
+          applicantId: metadata.id,
+          jobId: jobPostingId,
+          decision: 'Approved',
+          employer: employer,
+          jobTitle: jobTitle || '',
+          instructions: instructions,
+          receiverId: metadata.id,
+        });
+
+        console.log('Notification sent with metadata:', {
+          decision: 'accepted',
+          jobTitle: jobTitle,
+          company: employer.company_name,
+          instructions: instructions,
+        });
+
+        setAlertType('success');
+        setAlertMessage(`${formattedName} has been hired successfully!`);
+        setAlertVisible(true);
+
+        // Close modal after success
+        setTimeout(() => {
+          setAlertVisible(false);
+          router.back();
+        }, 2000);
+      } catch (error) {
+        setAlertType('error');
+        setAlertMessage(
+          error instanceof Error
+            ? `Hire processed but notification failed: ${error.message}`
+            : 'Hire completed with partial errors'
+        );
+        setAlertVisible(true);
       }
+    },
+    [jobPostingId, metadata, employer, formattedName, router]
+  );
 
-      await NotificationService.sendHireDecision({
-        applicantId: metadata.id,
-        jobId: jobPostingId,
-        decision: 'Rejected',
-        employer: employer,
-        jobTitle: jobTitle || '',
-      });
-
-      setAlertType('success');
-      setAlertMessage(`${formattedName} has been notified of the rejection`);
-      setAlertVisible(true);
-
-      setTimeout(() => {
+  const handleReject = useCallback(
+    async (reasons: string) => {
+      try {
         setAlertVisible(false);
-        router.back();
-      }, 2000);
-    } catch (error) {
-      setAlertType('error');
-      setAlertMessage(
-        error instanceof Error
-          ? `Hire processed but notification failed: ${error.message}`
-          : 'Hire completed with partial errors'
-      );
-      setAlertVisible(true);
-    }
-  }, [jobPostingId, metadata, employer, formattedName, router]);
+
+        if (!employer?.id) {
+          throw new Error('Employer information missing');
+        }
+
+        await NotificationService.sendHireDecision({
+          applicantId: metadata.id,
+          jobId: jobPostingId,
+          decision: 'Rejected',
+          employer: employer,
+          jobTitle: jobTitle || '',
+          rejectionReasons: reasons,
+          receiverId: metadata.id,
+        });
+
+        console.log('Notification sent with metadata:', {
+          decision: 'rejected',
+          jobTitle: jobTitle,
+          company: employer.company_name,
+          reasons: reasons,
+        });
+
+        setAlertType('success');
+        setAlertMessage(`${formattedName} has been notified of the rejection`);
+        setAlertVisible(true);
+
+        setTimeout(() => {
+          setAlertVisible(false);
+          router.back();
+        }, 2000);
+      } catch (error) {
+        setAlertType('error');
+        setAlertMessage(
+          error instanceof Error
+            ? `Hire processed but notification failed: ${error.message}`
+            : 'Hire completed with partial errors'
+        );
+        setAlertVisible(true);
+      }
+    },
+    [jobPostingId, metadata, employer, formattedName, router]
+  );
+
+  console.log('Applicant Profile Metadata:', JSON.stringify(metadata, null, 2));
 
   return (
     <>
@@ -194,16 +245,26 @@ const ApplicantProfile = memo(({ metadata, jobPostingId, jobTitle }: ApplicantPr
             key: 'preferences',
             content: (
               <>
-                <InfoRow label="Industry" value={metadata.job_preference.job_industry} />
-                <InfoRow
-                  label="Specialization"
-                  value={metadata.job_preference.job_specialization}
-                />
                 <InfoRow label="Work Type" value={metadata.job_preference.work_type} />
+                <InfoRow label="Salary Type" value={metadata.job_preference.salary_type} />
                 <InfoRow
                   label="Salary Range"
                   value={`₱${metadata.job_preference.min_salary} - ₱${metadata.job_preference.max_salary}`}
                 />
+                <InfoRow label="Location Preference" value={metadata.job_preference.location} />
+              </>
+            ),
+          },
+          {
+            key: 'skills',
+            content: (
+              <>
+                {metadata.applicantSkills?.map((skill: ApplicantSkill, index: number) => (
+                  <View key={`skill-${index}`} className="mb-4">
+                    <InfoRow label="Industry" value={skill.industry} />
+                    <InfoRow label="Specialization" value={skill.specialization} />
+                  </View>
+                ))}
               </>
             ),
           },
@@ -214,7 +275,9 @@ const ApplicantProfile = memo(({ metadata, jobPostingId, jobTitle }: ApplicantPr
               ? 'Personal Information'
               : item.key === 'education'
                 ? 'Education'
-                : 'Job Preferences',
+                : item.key === 'preferences'
+                  ? 'Job Preferences'
+                  : 'Skills',
             item.content
           )
         }
@@ -226,8 +289,21 @@ const ApplicantProfile = memo(({ metadata, jobPostingId, jobTitle }: ApplicantPr
                 'Cover Letter',
                 <Text className="text-gray-600">{metadata.cover_letter}</Text>
               )}
-            <Buttons title="Hire Applicant" onPress={handleHire} />
-            <SecondaryButtons title="Reject Applicant" onPress={handleReject} className="mt-2" />
+            <Buttons
+              title="Hire Applicant"
+              onPress={() => {
+                setCurrentAction('hire');
+                setShowFeedbackModal(true);
+              }}
+            />
+            <SecondaryButtons
+              title="Reject Applicant"
+              onPress={() => {
+                setCurrentAction('reject');
+                setShowFeedbackModal(true);
+              }}
+              className="mt-2"
+            />
           </>
         }
         initialNumToRender={2}
@@ -236,6 +312,19 @@ const ApplicantProfile = memo(({ metadata, jobPostingId, jobTitle }: ApplicantPr
         removeClippedSubviews
         contentContainerStyle={{ padding: 16 }}
       />
+
+      {showFeedbackModal && (
+        <SecondaryModal visible={showFeedbackModal} onClose={() => setShowFeedbackModal(false)}>
+          <NextStep
+            status={currentAction === 'hire' ? 'accepted' : 'rejected'}
+            onSubmit={(text) => {
+              currentAction === 'hire' ? handleHire(text) : handleReject(text);
+              setShowFeedbackModal(false);
+            }}
+            isInputMode={true}
+          />
+        </SecondaryModal>
+      )}
 
       {alertVisible && (
         <Alert

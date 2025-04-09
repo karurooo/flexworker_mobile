@@ -36,7 +36,8 @@ const SearchBar = ({
   };
 
   return (
-    <View className={`flex-row items-center bg-white rounded-lg px-4 h-12 shadow-sm ${containerStyle}`}>
+    <View
+      className={`h-12 flex-row items-center rounded-lg bg-white px-4 shadow-sm ${containerStyle}`}>
       <TextInput
         className="flex-1 text-base text-gray-900"
         placeholderTextColor="#6b7280"

@@ -35,13 +35,21 @@ export const useSigninMutation = () => {
       queryClient.invalidateQueries({ queryKey: AUTH_DATA_QUERY_KEY });
     },
     onError: (error: any) => {
-      console.log('Signin failed:', error);
+      let errorMessage = 'We encountered an issue signing you in. Please try again.';
+      const errorLower = error.message.toLowerCase();
 
-      let errorMessage = 'An unexpected error occurred during siginp.';
-      if (error.message.includes('not registered')) {
-        errorMessage = 'This email is not registered. Please sign up or reset your password.';
-      } else if (error.message.includes('network')) {
-        errorMessage = 'A network error occurred. Please check your internet connection.';
+      if (errorLower.includes('invalid credentials')) {
+        errorMessage = 'The email or password you entered is incorrect.';
+      } else if (errorLower.includes('not registered')) {
+        errorMessage = 'No account found with this email. Please sign up.';
+      } else if (errorLower.includes('network')) {
+        errorMessage = 'Connection issue detected. Please check your internet.';
+      } else if (errorLower.includes('email not verified')) {
+        errorMessage = 'Please verify your email first. Check your inbox.';
+      } else if (errorLower.includes('too many attempts')) {
+        errorMessage = 'Too many failed attempts. Please try again later.';
+      } else if (errorLower.includes('account locked')) {
+        errorMessage = 'Account temporarily locked. Reset password or try later.';
       }
 
       throw new Error(errorMessage);

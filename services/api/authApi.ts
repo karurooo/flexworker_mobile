@@ -32,7 +32,6 @@ export const signup = async ({ email, password, firstName, lastName, role }: Sig
         data: {
           first_name: firstName,
           last_name: lastName,
-          role: role,
         },
       },
     });
@@ -125,7 +124,6 @@ export const recoverSession = async () => {
 
     if (error) {
       await SecureStore.deleteItemAsync(SESSION_KEY);
-      throw error;
     }
 
     return data.session;

@@ -29,14 +29,12 @@ const DocumentPicker = memo(({ onDocumentSelected, title }: DocumentPickerProps)
   return (
     <View className="flex items-center">
       <TouchableOpacity
-        className={`h-10 w-full flex-row items-center justify-center gap-2 rounded-lg ${
-          isPending ? 'border border-sky' : 'border border-navy'
-        }`}
+        className="h-12 w-full flex-row items-center justify-center gap-2 rounded-lg bg-white"
         onPress={!isPending ? handlePickDocument : undefined}
         disabled={isPending}>
-        <Text className="text-bold text-md text-center">
+        <Text className="text-bold text-center text-xs">
           {title || 'Upload File'}{' '}
-          {!isPending && <AntDesign name="filetext1" size={16} color="black" />}
+          {!isPending && <AntDesign name="filetext1" size={15} color="black" />}
         </Text>
         {isPending && <ActivityIndicator size="small" color="#1F355C" />}
       </TouchableOpacity>
@@ -44,7 +42,7 @@ const DocumentPicker = memo(({ onDocumentSelected, title }: DocumentPickerProps)
       {fileName && (
         <View className="mt-2 flex-row items-center gap-2">
           <AntDesign name="filetext1" size={14} color="#1F355C" />
-          <Text className="text-sm text-navy">{fileName}</Text>
+          <Text className="text-xs text-navy">{fileName}</Text>
         </View>
       )}
     </View>

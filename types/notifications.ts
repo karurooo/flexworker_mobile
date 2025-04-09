@@ -1,6 +1,14 @@
 export interface Notification {
   id: string;
-  type: 'new_application' | 'application_update' | 'job_alert' | 'accepted' | 'rejected';
+  type:
+    | 'new_application'
+    | 'application_update'
+    | 'job_alert'
+    | 'accepted'
+    | 'rejected'
+    | 'job_application'
+    | 'employer_application'
+    | 'admin_response';
   title: string;
   senderName?: string; // Add this line to include senderName
   message: string;
@@ -44,6 +52,7 @@ export interface Notification {
       present_address: Location;
       personal_information: PersonalInformation;
       educational_background: EducationalBackground;
+      applicantSkills?: Array<{ industry: string; specialization: string }>;
     };
 
     job_postings?: {
@@ -51,6 +60,18 @@ export interface Notification {
       company_name: string;
       location?: Location;
     };
+
+    // For employer applications
+    company_name?: string;
+    application_status?: 'pending' | 'approved' | 'rejected';
+    submitted_at?: string;
+
+    // For admin responses
+    admin_decision?: 'approved' | 'rejected';
+    admin_message?: string;
+
+    instructions?: string;
+    rejectionReasons?: string;
   };
   user_id: string;
   applicant?: any;

@@ -9,8 +9,9 @@ import Alert from '~/components/Shared/Alerts';
 import PickImage from '~/components/Shared/PickImage';
 import CameraCapture from '~/components/Shared/CameraCapture';
 import DocumentPicker from '~/components/Shared/DocumentPicker';
-import TextInputField from '~/components/Shared/Forms/FormFields';
+import TextInputField from '~/components/Shared/Forms/DropdownForms';
 import FormField from '~/components/Shared/Forms/FormFields';
+import { useEmployerData } from '~/hooks/query/useEmployerData';
 
 const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
   const {
@@ -22,9 +23,14 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
     resolver: zodResolver(governmentEmployerSchema),
   });
 
-  const { mutate, isPending } = useGovernmentMutation();
+  const { mutate, isPending, isError, isSuccess } = useGovernmentMutation();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const { data: governmentData } = useEmployerData({
+    enabled: true,
+    refetchInterval: 3000,
+  });
 
   const formFields = useMemo(
     () => [
@@ -33,12 +39,14 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
         name: 'agencyName',
         label: 'Agency Name',
         required: true,
+        placeholder: 'Enter your agency name',
       },
       {
         type: 'text',
         name: 'department',
         label: 'Department Name',
         required: true,
+        placeholder: 'Enter your agency name',
       },
       {
         document: { type: 'image', name: 'philGeps', label: 'PhilGEPS Registration' },
@@ -71,6 +79,26 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
     [mutate, onCloseModal]
   );
 
+  const renderStatus = () => {
+    if (!governmentData?.governmentDocs) return null;
+
+    return (
+      <View className="mb-4">
+        <Text className="text-sm">
+          Document Status:{' '}
+          <Text
+            className={`font-semibold ${
+              governmentData.governmentDocs.status === 'APPROVED'
+                ? 'text-green-600'
+                : 'text-yellow-600'
+            }`}>
+            {governmentData.governmentDocs.status}
+          </Text>
+        </Text>
+      </View>
+    );
+  };
+
   const renderItem = useCallback(
     ({ item }: { item: any }) => {
       if (item.type === 'text') {
@@ -89,7 +117,7 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
       if (item.type === 'document') {
         return (
           <View className="mb-4">
-            <Text className="mb-2 text-sm font-medium text-gray-700">{item.label}</Text>
+            <Text className="mb-2 text-sm  ">{item.label}</Text>
             <DocumentPicker
               onDocumentSelected={handleDocumentSelect(item.name)}
               title={`Upload ${item.label}`}
@@ -106,7 +134,7 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
       return (
         <View className="mb-2 w-full flex-row items-center justify-center gap-2">
           <View className="flex-1">
-            <Text className="my-1 text-sm text-gray-700">{item.document.label}</Text>
+            <Text className="my-1 text-sm  ">{item.document.label}</Text>
             <PickImage
               onImageSelected={handleDocumentSelect(item.document.name)}
               title={`Upload ${item.document.label}`}
@@ -114,18 +142,6 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
             {errors[item.document.name] && (
               <Text className="mt-1 text-xs text-red-500">
                 {errors[item.document.name]?.message as string}
-              </Text>
-            )}
-          </View>
-          <View className="flex-1">
-            <Text className="my-1 text-sm text-gray-700">{item.selfie.label}</Text>
-            <CameraCapture
-              onImageCaptured={handleDocumentSelect(item.selfie.name)}
-              title={`Take ${item.selfie.label}`}
-            />
-            {errors[item.selfie.name] && (
-              <Text className="mt-1 text-xs text-red-500">
-                {errors[item.selfie.name]?.message as string}
               </Text>
             )}
           </View>
@@ -137,8 +153,9 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
 
   return (
     <View className="flex-1 p-4">
-      <Text className="mb-4 text-2xl font-bold">Government Requirements</Text>
-      <Text className=" text-md  mb-4">Please fill out the following information</Text>
+      <Text className="text-2xl font-bold">Government Requirements</Text>
+      {renderStatus()}
+      <Text className="text-md mb-4">Please fill out the following information</Text>
       <FlatList
         data={formFields}
         renderItem={renderItem}
@@ -146,8 +163,8 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
         contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
         ListFooterComponent={
-          <View className="pb-8 pt-4">
-            {errorMessage && (
+          <View className="py-1">
+            {isError && (
               <Alert
                 variant="error"
                 title="Error!"
@@ -156,7 +173,7 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
                 onClose={onCloseModal}
               />
             )}
-            {successMessage && (
+            {isSuccess && (
               <Alert
                 variant="success"
                 title="Success!"
@@ -165,7 +182,7 @@ const Government = memo(({ onCloseModal }: { onCloseModal: () => void }) => {
                 onClose={onCloseModal}
               />
             )}
-            <Text className="mb-4  text-sm text-gray-600">
+            <Text className="mb-2  text-sm text-gray-600">
               Note: Use the Image button to upload a file and the Camera button to take a selfie
               with the certificate.
             </Text>

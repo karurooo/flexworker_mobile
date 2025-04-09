@@ -1,11 +1,13 @@
 import { supabase } from 'services/supabase';
-import { Employer } from 'types/employers';
+import { Employer, GovernmentEmployer } from '~/types/employers';
 import {
   GovernmentDocumentData,
   CorporationDocumentData,
   SoleProprietorshipDocumentData,
 } from '~/schema/employerSchema';
 import { postEmployerStatus } from './statusDataApi';
+import { useEmployerData } from '~/hooks/query/useEmployerData';
+import { EmployerCategory } from '~/types/employers';
 
 async function postEmployerData(employer: Employer, userId: string) {
   try {
@@ -36,7 +38,7 @@ async function postEmployerData(employer: Employer, userId: string) {
       console.error('Supabase error:', error); // Log the Supabase error
       throw new Error(`Error inserting employer: ${error.message}`);
     } else {
-      console.log('Employer inserted successfully:', data);
+      console.log('Employer data inserted successfully:', data); // Log the successful insertion of employer data
     }
 
     return data;
@@ -72,6 +74,10 @@ async function postEmployerDocument<T>(
     throw error;
   }
 }
+async function postPrivateEmployer(employerId: string) {
+  await postEmployerStatus(employerId); // Changed from data.employer_id to data.id
+  console.log('Private employer status updated');
+}
 
 // Government documents
 async function postGovernmentData(employerId: string, data: GovernmentDocumentData) {
@@ -83,7 +89,6 @@ async function postGovernmentData(employerId: string, data: GovernmentDocumentDa
       department_name: doc.department,
       accreditation: doc.accreditation,
       philgeps: doc.philGeps,
-      philgeps_selfie: doc.philGepsSelfie,
     }),
     'Government documents inserted successfully',
     employerId,
@@ -104,9 +109,6 @@ async function postSoleProprietorshipData(
       DTI_cert: doc.dtiCert,
       business_permit: doc.businessPermit,
       BIR_COR: doc.birCert,
-      dti_cert_selfie: doc.dtiCertSelfie,
-      business_permit_selfie: doc.businessPermitSelfie,
-      bir_cor_selfie: doc.birCertSelfie,
     }),
     'Sole proprietorship documents inserted successfully',
     employerId,
@@ -132,9 +134,6 @@ async function postCorporationData(employerId: string, data: CorporationDocument
       bir_cert: doc.birCert,
       articles_incorporation: doc.artInc,
       corporate_offices_location: doc.corporateLocation,
-      sec_cert_selfie: doc.secCertSelfie,
-      business_permit_selfie: doc.businessPermitSelfie,
-      bir_cert_selfie: doc.birCertSelfie,
     }),
     'Corporation documents inserted successfully',
     employerId,
@@ -170,10 +169,29 @@ async function getEmployerData(userId: string) {
   }
 }
 
+export const submitEmployerData = async (data: any): Promise<Employer> => {
+  // Your API implementation
+  const response = await fetch('/api/employer', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return response.json();
+};
+
+export const submitGovernmentData = async (data: any): Promise<GovernmentEmployer> => {
+  // Your API implementation
+  const response = await fetch('/api/employer/government', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+  return response.json();
+};
+
 export {
   postEmployerData,
   getEmployerData,
   postGovernmentData,
   postSoleProprietorshipData,
   postCorporationData,
+  postPrivateEmployer,
 };

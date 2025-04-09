@@ -73,18 +73,7 @@ export const corporationSchema = z.object({
         message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
       }
     ),
-  businessPermitSelfie: z
-    .string()
-    .min(1, 'Business Permit is required')
-    .refine(
-      (value) =>
-        value.startsWith(
-          'https://jpbsrasldjdqavbzozyp.supabase.co/storage/v1/object/public/user-images/'
-        ),
-      {
-        message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
-      }
-    ),
+
   birCert: z
     .string()
     .min(1, 'BIR Certificate is required')
@@ -97,18 +86,7 @@ export const corporationSchema = z.object({
         message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
       }
     ),
-  birCertSelfie: z
-    .string()
-    .min(1, 'Selfie with BIR Certificate is required')
-    .refine(
-      (value) =>
-        value.startsWith(
-          'https://jpbsrasldjdqavbzozyp.supabase.co/storage/v1/object/public/user-images/'
-        ),
-      {
-        message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
-      }
-    ),
+
   secCert: z
     .string()
     .min(1, 'SEC Certificate is required')
@@ -121,18 +99,7 @@ export const corporationSchema = z.object({
         message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
       }
     ),
-  secCertSelfie: z
-    .string()
-    .min(1, 'Selfie with SEC Certificate is required')
-    .refine(
-      (value) =>
-        value.startsWith(
-          'https://jpbsrasldjdqavbzozyp.supabase.co/storage/v1/object/public/user-images/'
-        ),
-      {
-        message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
-      }
-    ),
+
   artInc: z
     .string()
     .min(1, 'Articles of Incorporation Certificate is required')
@@ -161,18 +128,7 @@ export const governmentEmployerSchema = z.object({
         message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
       }
     ),
-  philGepsSelfie: z
-    .string()
-    .min(1, 'Required')
-    .refine(
-      (value) =>
-        value.startsWith(
-          'https://jpbsrasldjdqavbzozyp.supabase.co/storage/v1/object/public/user-images/'
-        ),
-      {
-        message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
-      }
-    ),
+
   accreditation: z
     .string()
     .min(1, 'Government Accreditation is required')
@@ -199,18 +155,7 @@ export const soleProprietorshipSchema = z.object({
         message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
       }
     ),
-  dtiCertSelfie: z
-    .string()
-    .min(1, 'DTI Certificate is required')
-    .refine(
-      (value) =>
-        value.startsWith(
-          'https://jpbsrasldjdqavbzozyp.supabase.co/storage/v1/object/public/user-images/'
-        ),
-      {
-        message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
-      }
-    ),
+
   businessPermit: z
     .string()
     .min(1, 'Business Permit is required')
@@ -223,31 +168,8 @@ export const soleProprietorshipSchema = z.object({
         message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
       }
     ),
-  businessPermitSelfie: z
-    .string()
-    .min(1, 'Business Permit is required')
-    .refine(
-      (value) =>
-        value.startsWith(
-          'https://jpbsrasldjdqavbzozyp.supabase.co/storage/v1/object/public/user-images/'
-        ),
-      {
-        message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
-      }
-    ),
+
   birCert: z
-    .string()
-    .min(1, 'BIR Certificate is required')
-    .refine(
-      (value) =>
-        value.startsWith(
-          'https://jpbsrasldjdqavbzozyp.supabase.co/storage/v1/object/public/user-images/'
-        ),
-      {
-        message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
-      }
-    ),
-  birCertSelfie: z
     .string()
     .min(1, 'BIR Certificate is required')
     .refine(
