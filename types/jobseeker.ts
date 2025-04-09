@@ -64,6 +64,8 @@ export interface JobSeeker {
     civilService: YesNoCategory;
     tin: string;
     tinSelfie: string;
+    disability: string;
+    dateOfBirth: string;
   };
   presentAddress: {
     region: string;
@@ -112,6 +114,7 @@ export interface JobSeekerProfile {
     tin: string;
     tin_selfie: string;
     disability: string;
+    date_of_birth: string;
   };
   presentAddress: {
     region: string;

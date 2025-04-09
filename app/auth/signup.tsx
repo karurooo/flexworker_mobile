@@ -138,13 +138,18 @@ export default function Signup() {
             render={({ field: { onChange, value } }) => (
               <MemoizedCheckbox
                 isChecked={value}
-                onToggle={() => {
-                  onChange(!value);
-                  if (!value) {
-                    setIsTermsModalVisible(true); // Show modal when checkbox is checked
-                  }
-                }}
-                label="By signing up, you agree to our Terms of Service and Privacy Policy"
+                onToggle={() => onChange(!value)}
+                label={
+                  <Text>
+                    By signing up, you agree to our{' '}
+                    <Text
+                      className="text-blue-500 underline"
+                      onPress={() => setIsTermsModalVisible(true)} // Show modal when clicked
+                    >
+                      Terms of Service and Privacy Policy
+                    </Text>
+                  </Text>
+                }
                 error={errors.agree_to_terms?.message}
               />
             )}

@@ -5,7 +5,7 @@ export const PersonalInformationSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   middleName: z.string().optional(),
   lastName: z.string().min(1, 'Last name is required'),
-  disability: z.string().min(1, 'disability is required'),
+  disability: z.string().min(1, 'Disability is required'),
   sex: z.string().min(1, 'Sex is required'),
   religion: z.string().min(1, 'Religion is required'),
   contactNumber: z.string().min(11, 'Invalid contact number'),
@@ -35,6 +35,14 @@ export const PersonalInformationSchema = z.object({
         message: 'Please upload a valid image file (JPEG, PNG, or WebP).',
       }
     ),
+  dateOfBirth: z
+    .union([z.string(), z.date()]) // Accept both string and Date
+    .refine((value) => {
+      const date = typeof value === 'string' ? Date.parse(value) : value.getTime();
+      return !isNaN(date);
+    }, {
+      message: 'Invalid date format',
+    }),
 });
 // Base Job Seeker Job Preference Schema
 export const JobPrefreferenceSchema = z.object({
@@ -87,10 +95,4 @@ export const presentAddressSchema = z.object({
   street: z.string().min(1, 'Street is required'),
   zipCode: z.string().min(1, 'Zip code is required'),
 });
-
-export type PresentAddressFormData = z.infer<typeof presentAddressSchema>;
-export type CoverLetterFormData = z.infer<typeof CoverLetterSchema>;
-export type EducationalBackgroundFormData = z.infer<typeof EducationalBackgroundSchema>;
-export type JobPreferenceFormData = z.infer<typeof JobPrefreferenceSchema>;
-export type PersonalInformationFormData = z.infer<typeof PersonalInformationSchema>;
 export type JobSkillsFormData = z.infer<typeof JobSkillsSchema>;

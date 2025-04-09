@@ -24,6 +24,7 @@ async function postJobseekerPersonalInfo(jobSeeker: PersonalInformationFormData,
         civil_service: jobSeeker.civilService,
         tin: jobSeeker.tin,
         disability: jobSeeker.disability,
+        date_of_birth: jobSeeker.dateOfBirth,
       },
     };
 

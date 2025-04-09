@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useJobSeekerMutations } from '~/mutations/query/jobseeker/useJobseekerMutation';
 import { PersonalInformationFormData, PersonalInformationSchema } from '~/schema/jobeekerSchema';
-import { View, ScrollView, KeyboardAvoidingView, FlatList, Text } from 'react-native';
+import { View, ScrollView, KeyboardAvoidingView, FlatList, Text, TouchableOpacity } from 'react-native';
 import FormField from '~/components/Shared/Forms/FormFields';
 import DropdownFormField from '~/components/Shared/Forms/DropdownForms';
 import Button from '~/components/Shared/Buttons/Button';
@@ -24,6 +24,7 @@ import PrimaryModal from '~/components/Shared/Modal/PrimaryModal';
 import Address from '~/components/Shared/Address';
 import { postPresentAddress } from '~/services/api/jobseekers/jobseekerDataApi';
 import { AddressFormData } from '~/types/address';
+import DatePicker from '~/components/Shared/Selector/Date'; // Import the DatePicker component
 
 // Add type definitions at the top
 type FormFieldItem =
@@ -55,6 +56,7 @@ const PersonalInformationForm = React.memo(({ onCloseModal }: JobSeekerProps) =>
       civilService: '',
       tin: '',
       disability: '',
+      dateOfBirth: '', // Add default value for Date of Birth
     },
   });
 
@@ -71,6 +73,7 @@ const PersonalInformationForm = React.memo(({ onCloseModal }: JobSeekerProps) =>
 
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [addressSubmitted, setAddressSubmitted] = useState(false);
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
 
   const handleAddressSubmit = async (data: AddressFormData) => {
     try {
@@ -96,6 +99,12 @@ const PersonalInformationForm = React.memo(({ onCloseModal }: JobSeekerProps) =>
     }
   };
 
+  const handleDateSelect = (date: Date) => {
+    const formattedDate = date.toLocaleDateString('en-CA'); // Format as YYYY-MM-DD in local timezone
+    formMethods.setValue('dateOfBirth', formattedDate); // Set the formatted date in the form
+    setIsDatePickerVisible(false); // Close the date picker
+  };
+
   const onSubmit = (data: PersonalInformationFormData) => {
     mutate(data, {
       onSuccess: () => {
@@ -105,7 +114,6 @@ const PersonalInformationForm = React.memo(({ onCloseModal }: JobSeekerProps) =>
     });
   };
 
-  // Update formFields declaration
   const formFields = useMemo<FormFieldItem[]>(
     () => [
       { name: 'firstName', label: 'First Name' },
@@ -115,6 +123,11 @@ const PersonalInformationForm = React.memo(({ onCloseModal }: JobSeekerProps) =>
         name: 'contactNumber',
         label: 'Contact Number',
         keyboardType: 'phone-pad',
+      },
+      // Date of Birth
+      {
+        name: 'dateOfBirth',
+        label: 'Date of Birth',
       },
       {
         type: 'dropdown',
@@ -151,9 +164,29 @@ const PersonalInformationForm = React.memo(({ onCloseModal }: JobSeekerProps) =>
     []
   );
 
-  // Update renderItem function
   const renderItem = React.useCallback(
     ({ item }: { item: FormFieldItem }) => {
+      if (item.name === 'dateOfBirth') {
+        return (
+          <View className="mb-4">
+            <Text className="mb-1 text-gray-700">{item.label}</Text>
+            <TouchableOpacity
+              onPress={() => setIsDatePickerVisible(true)}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-3"
+            >
+              <Text className="text-gray-700">
+                {formMethods.watch('dateOfBirth')
+                  ? new Date(formMethods.watch('dateOfBirth')).toLocaleDateString()
+                  : 'Select Date'}
+              </Text>
+            </TouchableOpacity>
+            {errors.dateOfBirth && (
+              <Text className="mt-1 text-sm text-red-500">{errors.dateOfBirth.message}</Text>
+            )}
+          </View>
+        );
+      }
+
       if (item.type === 'dropdown') {
         return (
           <DropdownFormField
@@ -177,7 +210,7 @@ const PersonalInformationForm = React.memo(({ onCloseModal }: JobSeekerProps) =>
         />
       );
     },
-    [control, errors]
+    [control, errors, formMethods]
   );
 
   return (
@@ -246,6 +279,15 @@ const PersonalInformationForm = React.memo(({ onCloseModal }: JobSeekerProps) =>
         <PrimaryModal visible={showAddressModal} onClose={() => setShowAddressModal(false)}>
           <Address onSubmit={handleAddressSubmit} />
         </PrimaryModal>
+      )}
+
+      {/* Date Picker Modal */}
+      {isDatePickerVisible && (
+        <DatePicker
+          visible={isDatePickerVisible}
+          onClose={() => setIsDatePickerVisible(false)}
+          onSelectDate={handleDateSelect}
+        />
       )}
     </FormProvider>
   );
